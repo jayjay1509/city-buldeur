@@ -37,6 +37,25 @@ namespace core
         {
             return { y, -x };
         }
+
+        constexpr Vec2i operator*(int scalar) const
+        {
+            return { scalar * x ,y * scalar };
+        }
+
+        constexpr Vec2i operator/(int scalar) const
+        {
+	        if (scalar == 0)
+	        {
+                return { 0, 0 };
+	        }
+	        else
+	        {
+                return { x / scalar , y / scalar };
+	        }
+        }
+
+
     }; // struct Vec2i
     
 } // namespace core

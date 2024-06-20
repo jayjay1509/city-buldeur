@@ -1,83 +1,119 @@
+#include <ui/Ui_Button.h>
+
 #include <iostream>
-#include <SFML/Graphics/CircleShape.hpp>
-#include <SFML/Graphics/RectangleShape.hpp>
+
 #include <SFML/Graphics/RenderTarget.hpp>
-#include <ui/UIButton.h>
+#include <Tracy/Tracy.hpp>
 
 
-UiButton::UiButton(sf::Vector2f pos, sf::Vector2f size, sf::Color color, sf::Vector2f pressed_size, 
-                   sf::Color pressed_color, std::string text, int character_size, sf::Color _color_text, sf::Vector2f pressed_Character_size)
+UiButton::UiButton(sf::Vector2f position, sf::Color colorBase)
 {
-	background_ = std::make_unique<sf::RectangleShape>(size);
-	InstanceShape(pos, color, pressed_size, pressed_color, text, character_size, _color_text, pressed_Character_size);
+
+#ifdef TRACY_ENABLE
+	ZoneScoped;
+#endif
+
+	setPosition(position);
+
+	// Declare and load a font
+	font_.loadFromFile("../resources/font/light-arial.ttf");
+	texture_.loadFromFile("../resources/asset/blue_button00.png");
+
+	// Create a text
+	text_ = sf::Text("hello", font_);
+	text_.setCharacterSize(18);
+	text_.setFillColor(sf::Color::Black);
+	sf::FloatRect textBounds = text_.getLocalBounds();
+	text_.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
+
+	//sf::FloatRect texSize = sf::FloatRect(texture_.get);
+	sprite_.setTexture(texture_);
+	sprite_.setOrigin(texture_.getSize().x / 2.0f, texture_.getSize().y / 2.0f);
+	sprite_.setColor(sf::Color::White);
+
+	//initialScale_ = sf::Vector2f(0.5f, 0.5f);
+
 }
-
-UiButton::UiButton(sf::Vector2f pos, float radius, sf::Color color, sf::Vector2f pressed_size, 
-	sf::Color pressed_color, std::string text, int character_size, sf::Color _color_text, sf::Vector2f pressed_Character_size)
-{
-	background_ = std::make_unique<sf::CircleShape>(radius);
-	InstanceShape(pos, color, pressed_size, pressed_color, text, character_size, _color_text, pressed_Character_size);
-}
-
-void UiButton::InstanceShape(sf::Vector2f pos, sf::Color color, sf::Vector2f pressed_size, sf::Color pressed_color, std::string text, int character_size, sf::Color color_text, sf::Vector2f pressed_Character_size)
-{
-	background_->setFillColor(color);
-	background_->setPosition(pos);
-	background_->setOrigin(background_->getGlobalBounds().width / 2.0f, background_->getGlobalBounds().height / 2.0f);
-
-	if (!font_.loadFromFile("resources/font/light-arial.ttf")) {
-		// Gérer l'erreur : impossible de charger la police
-	}
-
-	buttonText_.setFont(font_);
-	buttonText_.setString(text);
-	buttonText_.setCharacterSize(character_size);
-	buttonText_.setFillColor(color_text);
-	sf::FloatRect textRect = buttonText_.getLocalBounds();
-	sf::FloatRect shapeRect = background_->getGlobalBounds();
-	buttonText_.setOrigin(textRect.left + textRect.width / 2.0f, textRect.top + textRect.height / 2.0f);
-	buttonText_.setPosition(shapeRect.left + shapeRect.width / 2.0f, shapeRect.top + shapeRect.height / 2.0f);
-	buttonPressedColor_ = pressed_color;
-	originalColor_ = background_->getFillColor();
-	buttonPressedSize_ = pressed_size;
-	originalSize_ = background_->getScale();
-	buttonPressedSizeText_ = pressed_Character_size;
-	originalSizeText_ = buttonText_.getScale();
-}
-
 
 void UiButton::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 
-	target.draw(*background_, states);
-	target.draw(buttonText_, states);
+#ifdef TRACY_ENABLE
+	ZoneScoped;
+#endif
+
+	states.transform *= getTransform();
+
+	target.draw(sprite_, states);
+	target.draw(text_, states);
 
 }
 
-void const UiButton::handleEvent(const sf::Event& event)
+bool UiButton::ContainsMouse(const sf::Event& event)
 {
-	if (event.type == sf::Event::MouseButtonPressed)
-	{
-		if (event.mouseButton.button == sf::Mouse::Left)
-		{
-			float mouseX = static_cast<float>(event.mouseButton.x);
-			float mouseY = static_cast<float>(event.mouseButton.y);
 
-			if (background_->getGlobalBounds().contains(mouseX, mouseY))
-			{
-				std::cout << "Start" << std::endl;
-				background_->setFillColor(buttonPressedColor_);
-				background_->setScale(buttonPressedSize_);
-				buttonText_.setScale(buttonPressedSizeText_);
-			}
-		}
+#ifdef TRACY_ENABLE
+	ZoneScoped;
+#endif
+	// Get the position of the mouse click
+	float mouseX = static_cast<float>(event.mouseButton.x) - getPosition().x;
+	float mouseY = static_cast<float>(event.mouseButton.y) - getPosition().y;
+
+	// Check if the mouse click is inside the drawable shape
+	if (sprite_.getGlobalBounds().contains(mouseX, mouseY)) {
+		return true;
 	}
 	else
 	{
-		background_->setFillColor(originalColor_);
-		background_->setScale(originalSize_);
-		buttonText_.setScale(originalSizeText_);
-
+		return false;
 	}
 }
 
+void UiButton::HandleEvent(const sf::Event& event)
+{
+#ifdef TRACY_ENABLE
+	ZoneScoped;
+#endif
+
+	// Check for mouse button pressed event
+	if (event.type == sf::Event::MouseButtonReleased) {
+
+		setScale(getScale().x / 0.9f, getScale().y / 0.9f);
+
+		if (ContainsMouse(event))
+		{
+			// Check if the left mouse button is pressed
+			if (event.mouseButton.button == sf::Mouse::Left) {
+				// Code à faire pour le bouton ---------------------------------------------------
+				if (callback_) {
+					callback_();
+				}
+				else
+				{
+					std::cout << "No callback defined...";
+				}
+			}
+		}
+	}
+
+	if (event.type == sf::Event::MouseButtonPressed)
+	{
+		if (ContainsMouse(event))
+		{
+			setScale(0.9f * getScale().x, 0.9f * getScale().y);
+		}
+	}
+
+
+
+}
+
+//void UiButton::setScale(float factorX, float factorY)
+//{
+//	std::cout << "Overide scale" << std::endl;
+//	initialScale_.x = factorX;
+//	initialScale_.y = factorY;
+//
+//	sf::Transformable::setScale(factorX, factorY);
+//
+//}

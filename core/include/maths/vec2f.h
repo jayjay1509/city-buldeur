@@ -1,6 +1,8 @@
 #ifndef CORE_MATHS_VEC2F_H_
 #define CORE_MATHS_VEC2F_H_
 
+#include <cmath>
+
 namespace core
 {
     /**
@@ -24,9 +26,58 @@ namespace core
         {
             return { -x, -y };
         }
-        static constexpr int Dot(Vec2f v1, Vec2f v2)
+
+        constexpr Vec2f operator*(float scalar) const
         {
-            return v1.x * v2.x + v1.y * v2.y;
+            return { scalar * x ,y * scalar };
+        }
+
+        constexpr Vec2f operator/(float scalar) const
+        {
+            if (scalar == 0)
+            {
+                return { 0, 0 };
+            }
+            else
+            {
+                return { x / scalar , y / scalar };
+            }
+        }
+
+        constexpr Vec2f lerp( Vec2f b, float t) const
+        {
+            return { x + (b.x - x) * t , y + (b.y - y) * t };
+        }
+
+        [[nodiscard]] float squaredMagnitude() const
+        {
+             return  (x * x + y * y);
+        }
+
+
+        [[nodiscard]] float Magnitude() const
+        {
+            return  std::sqrt(squaredMagnitude());
+        }
+
+
+
+        [[nodiscard]] Vec2f Normalized() const
+        {
+	        if (x == 0 || y == 0)
+	        {
+                return { 0, 0 };
+	        }
+	        else
+	        {
+                return  { x / Magnitude() , y / Magnitude() };
+	        }
+            
+        }
+
+        static float Dot(const Vec2f& v1, const Vec2f& v2)
+        {
+            return (v1.x * v2.x) + (v1.y * v2.y);
         }
 
         constexpr Vec2f Perpendicular() const
@@ -37,12 +88,13 @@ namespace core
         {
             return { y, -x };
         }
-    }; // struct Vec2i
+    }; // struct Vec2f
+
+    //Operator overload for multiplication
+    constexpr Vec2f operator*(float scalar, const Vec2f& vec)
+    {
+        return { scalar * vec.x, scalar * vec.y };
+    }
 
 } // namespace core
-
-
-
-
-
-#endif  //CORE_MATHS_VEC2F.H_
+#endif  // CORE_MATHS_VEC2F_H_
