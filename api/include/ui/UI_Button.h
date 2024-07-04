@@ -18,15 +18,15 @@ private:
 	sf::Font font_;
 	sf::Texture texture_;
 
-	//sf::RectangleShape background_;
+	
 	sf::Sprite sprite_;
 	sf::Text text_;
 
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
-	bool ContainsMouse(const sf::Event& event);
+	bool ContainsMouse(const sf::Event& event) const;
 
 public:
-	UiButton(sf::Vector2f position, sf::Color colorBase);
+	UiButton(sf::Vector2f position, sf::Color colorBase, std::string text);
 	void HandleEvent(const sf::Event& event);
 
 	//void setScale(float factorX, float factorY);

@@ -19,18 +19,26 @@ public:
     // Constructeur par défaut
     Tilemap() = default;
 
+    sf::Vector2u playground_size_u_;
+    sf::Vector2u playground_tile_offset_u_;
+
     // Méthodes publiques
     void Setup(sf::Vector2u playground_size_u, sf::Vector2u playground_tile_offset_u);
     void Generate();
+
+    std::vector<sf::Vector2f> GetWalkable();
+
+    void HandleEvent(const sf::Event& event);
     void SaveLevelToJson(const std::string& file_name);
     void LoadLevelFromJson(const std::string& file_name);
-    
+    std::function<void(Tile&)> ClickedTile;
+    Tile* tileSelected_;
 
 private:
     // Attributs privés
     std::vector<Tile> tiles_;
-    sf::Vector2u playground_size_u_;
-    sf::Vector2u playground_tile_offset_u_;
+   
+    
 
     // Méthodes privées
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
@@ -38,4 +46,9 @@ private:
 };
 
 #endif
+
+
+
+
+
 

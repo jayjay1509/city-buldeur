@@ -5,31 +5,30 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include <Tracy/Tracy.hpp>
 
+#include "tilemaps/RessourceManager.h"
 
-UiButton::UiButton(sf::Vector2f position, sf::Color colorBase)
+
+UiButton::UiButton(sf::Vector2f position, sf::Color colorBase, std::string text)
 {
-
-#ifdef TRACY_ENABLE
-	ZoneScoped;
-#endif
 
 	setPosition(position);
 
 	// Declare and load a font
-	font_.loadFromFile("../resources/font/light-arial.ttf");
-	texture_.loadFromFile("../resources/asset/blue_button00.png");
+	font_.loadFromFile("../resources/fonts/arial.ttf");
+	//texture_.loadFromFile("../resources/sprites/yellow_button00.png");
+
 
 	// Create a text
-	text_ = sf::Text("hello", font_);
+	text_ = sf::Text(text, font_);
 	text_.setCharacterSize(18);
 	text_.setFillColor(sf::Color::Black);
 	sf::FloatRect textBounds = text_.getLocalBounds();
 	text_.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
 
 	//sf::FloatRect texSize = sf::FloatRect(texture_.get);
-	sprite_.setTexture(texture_);
-	sprite_.setOrigin(texture_.getSize().x / 2.0f, texture_.getSize().y / 2.0f);
-	sprite_.setColor(sf::Color::White);
+	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::kStone1));
+	sprite_.setOrigin(sprite_.getTexture()->getSize().x / 2.0f, sprite_.getTexture()->getSize().y / 2.0f);
+	sprite_.setColor(colorBase);
 
 	//initialScale_ = sf::Vector2f(0.5f, 0.5f);
 
@@ -38,10 +37,6 @@ UiButton::UiButton(sf::Vector2f position, sf::Color colorBase)
 void UiButton::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 
-#ifdef TRACY_ENABLE
-	ZoneScoped;
-#endif
-
 	states.transform *= getTransform();
 
 	target.draw(sprite_, states);
@@ -49,12 +44,8 @@ void UiButton::draw(sf::RenderTarget& target, sf::RenderStates states) const
 
 }
 
-bool UiButton::ContainsMouse(const sf::Event& event)
+bool UiButton::ContainsMouse(const sf::Event& event) const
 {
-
-#ifdef TRACY_ENABLE
-	ZoneScoped;
-#endif
 	// Get the position of the mouse click
 	float mouseX = static_cast<float>(event.mouseButton.x) - getPosition().x;
 	float mouseY = static_cast<float>(event.mouseButton.y) - getPosition().y;
@@ -71,17 +62,14 @@ bool UiButton::ContainsMouse(const sf::Event& event)
 
 void UiButton::HandleEvent(const sf::Event& event)
 {
-#ifdef TRACY_ENABLE
-	ZoneScoped;
-#endif
 
 	// Check for mouse button pressed event
 	if (event.type == sf::Event::MouseButtonReleased) {
 
-		setScale(getScale().x / 0.9f, getScale().y / 0.9f);
-
 		if (ContainsMouse(event))
 		{
+			setScale(getScale().x / 0.9f, getScale().y / 0.9f);
+
 			// Check if the left mouse button is pressed
 			if (event.mouseButton.button == sf::Mouse::Left) {
 				// Code à faire pour le bouton ---------------------------------------------------
@@ -117,3 +105,5 @@ void UiButton::HandleEvent(const sf::Event& event)
 //	sf::Transformable::setScale(factorX, factorY);
 //
 //}
+
+

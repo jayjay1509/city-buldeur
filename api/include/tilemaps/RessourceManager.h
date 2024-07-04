@@ -8,77 +8,101 @@
 class ResourceManager {
 
 public:
-	enum class Resource
-	{
-        foret_1,
-        foret_2,
-        foret_3,
-        foret_4,
-        foret_5,
-        foret_6,
-        foret_7,
-        foret_8,
-        foret_9,
-        foret_10,
-        foret_11,
-        foret_12,
-        foret_coupe_1,
-        foret_coupe_2,
-        foret_coupe_3,
-        foret_coupe_4,
-        caisse_1,
-        caisse_2,
-        caisse_3,
-        caisse_4,
-        route_1,
-        route_2,
-        route_3,
-        route_4,
-        route_5,
-        route_6,
-        route_7,
-        route_8,
-        route_9,
-        route_10,
-        route_11,
-        route_12,
-        route_13,
-        route_14,
-        route_15,
-        route_16,
-        route_17,
-        sand_1,
-        sand_2,
-        snow_1,
-        snow_2,
-        stone_1,
-        stone_2,
-        terre_1,
-        terre_2,
-        water_1,
-        water_2,
-        End
+    enum class Resource
+    {
+        kForet1,
+        kForet2,
+        kForet3,
+        kForet4,
+        kForet5,
+        kForet6,
+        kForet7,
+        kForet8,
+        kForet9,
+        kForet10,
+        kForet11,
+        kForet12,
+        kForetCoupe1,
+        kForetCoupe2,
+        kForetCoupe3,
+        kForetCoupe4,
+        kCaisse1,
+        kCaisse2,
+        kCaisse3,
+        kCaisse4,
+        kRoute1,
+        kRoute2,
+        kRoute3,
+        kRoute4,
+        kRoute5,
+        kRoute6,
+        kRoute7,
+        kRoute8,
+        kRoute9,
+        kRoute10,
+        kRoute11,
+        kRoute12,
+        kRoute13,
+        kRoute14,
+        kRoute15,
+        kRoute16,
+        kRoute17,
+        kSand1,
+        kSand2,
+        kSnow1,
+        kSnow2,
+        kStone1,
+        kStone2,
+        kTerre1,
+        kTerre2,
+        kWater1,
+        kWater2,
+        kMan,
+        kMaison1,
+        kMaison2,
+        kMaison3,
+        kMaison4,
+        kEnd
 	};
+
+    enum class CursorImage
+    {
+        kBasic,
+        kBuild,
+        kMax
+    };
 
 private:
 	std::vector<sf::Texture> textures_;
+    std::vector<sf::Image> cursor_images_;
 	sf::Texture blankTexture_;
+    sf::Image blank_cursor_image_;
 
 	void LoadAllTextures();
+    void LoadCursors();
 
 public:
-	static ResourceManager& Get() {
-		static ResourceManager instance_;
-		return instance_;
-	}
-
 
 	ResourceManager();
+
+	//~ResourceManager();
+
+    static ResourceManager& Get();
 	ResourceManager(const ResourceManager&) = delete;
 	ResourceManager& operator=(const ResourceManager&) = delete;
 
 	sf::Texture& GetTexture(Resource resourceId);
+    sf::Image& GetCursor(CursorImage cursor_id);
 
 };
 
 #endif
+
+
+
+
+
+
+
+
+    

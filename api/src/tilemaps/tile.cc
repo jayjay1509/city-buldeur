@@ -2,20 +2,43 @@
 
 #include <Tracy/Tracy.hpp>
 
-Tile::Tile(ResourceManager::Resource resource, float x, float y, bool is_walkable,TileType tile) : type_(tile)
+Tile::Tile(ResourceManager::Resource resource, float x = 0, float y = 0, bool is_walkable = true, TileType tile = TileType::kWater2) : type_(tile)
 {
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
-    sprite_.setTexture(ResourceManager::Get().GetTexture(resource));
-    sprite_.setPosition(x, y);
+
+	
+
+	sprite_.setTexture(ResourceManager::Get().GetTexture(resource));
+	sprite_.setPosition(x, y);
+
+	//outline_.setSize(sf::Vector2f(sprite_.getTexture()->getSize()));
+	//outline_.setPosition(x, y);
+	//outline_.setFillColor(sf::Color(255, 255, 255, 0));
+	//outline_.setOutlineColor(sf::Color::White);
+	//outline_.setOutlineThickness(-1);
+
+	isWalkable_ = is_walkable;
+}
+
+void Tile::set_walkable(const bool cond) 
+{
+	isWalkable_ = cond;
 }
 
 void Tile::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-#ifdef TRACY_ENABLE
-    ZoneScoped;
-#endif
+	target.draw(sprite_, states);
 
-    target.draw(sprite_, states);
+	if (isSelected_) {
+		target.draw(outline_, states);
+	}
 }
+
+void Tile::Select()
+{
+	isSelected_ = true;
+}
+void Tile::Unselect()
+{
+	isSelected_ = false;
+}
+
