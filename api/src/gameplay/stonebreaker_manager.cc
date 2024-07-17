@@ -1,5 +1,5 @@
 
-#include "gameplay/woodman_manager.h"
+#include "gameplay/stonebreaker_manager.h"
 
 #include <iostream>
 
@@ -9,20 +9,20 @@
 
 
 
-void woodmanManager::Addwoodman(const Tile& tile,Tilemap& map)
+void stonebreakerManager::Addstonebreaker(const Tile& tile,Tilemap& map)
 {
 
 	//std::cout << "Tile clicked, can we finally add a house ? [" << tile.Position().x << ":" << tile.Position().y << "]" << std::endl;
 
 	std::cout << "woodman genere" << " X: "<<tile.Position().x << " Y: " << tile.Position().y << std::endl;
-	woodmans_.emplace_back(tile.Position().x, tile.Position().y,64,map);
+	stonebreakers_.emplace_back(tile.Position().x, tile.Position().y,64,map);
 	
 
 }
 
-void woodmanManager::draw(sf::RenderTarget& target, sf::RenderStates states) const
+void stonebreakerManager::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	for (const auto& b : woodmans_)
+	for (const auto& b : stonebreakers_)
 	{
 		target.draw(b, states);
 	}

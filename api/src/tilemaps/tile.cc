@@ -2,10 +2,8 @@
 
 #include <Tracy/Tracy.hpp>
 
-Tile::Tile(ResourceManager::Resource resource, float x = 0, float y = 0, bool is_walkable = true, TileType tile = TileType::kWater2) : type_(tile)
+Tile::Tile(ResourceManager::Resource resource, float x = 0, float y = 0, bool is_walkable = true, TileType tile = TileType::kWater1) : type_(tile)
 {
-
-	
 
 	sprite_.setTexture(ResourceManager::Get().GetTexture(resource));
 	sprite_.setPosition(x, y);
@@ -33,6 +31,37 @@ void Tile::draw(sf::RenderTarget& target, sf::RenderStates states) const
 	}
 }
 
+
+void Tile::Set_Tree(TileType newtiletype)
+{
+	type_ = newtiletype;
+	
+	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::kForetCoupe1));
+}
+
+void Tile::Set_Stone(TileType newtiletype)
+{
+	type_ = newtiletype;
+
+	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::kStone2));
+}
+
+
+void Tile::Set_Stone_2(TileType newtiletype)
+{
+	type_ = newtiletype;
+
+	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::kStone1));
+}
+
+
+void Tile::Set_earther(TileType newtiletype)
+{
+	type_ = newtiletype;
+
+	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::kTerre2));
+}
+
 void Tile::Select()
 {
 	isSelected_ = true;
@@ -41,4 +70,6 @@ void Tile::Unselect()
 {
 	isSelected_ = false;
 }
+
+
 

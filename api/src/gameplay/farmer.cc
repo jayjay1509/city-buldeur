@@ -1,4 +1,4 @@
-#include "gameplay/woodman.h"
+#include "gameplay/Farmer.h"
 
 #include <iostream>
 
@@ -11,9 +11,9 @@
 #include "tilemaps/Tilemap.h"
 
 
-woodman::woodman(float x, float y, float linear_speed, Tilemap& tilemap) :tilemap_(tilemap), walker(x, y, linear_speed)
+Farmer::Farmer(float x, float y, float linear_speed, Tilemap& tilemap,sf::Vector2f maison) : tilemap_(tilemap),  walker(x, y, linear_speed) ,maison_(maison)
 {
-	maison = getPosition();
+	
 	rect_.setPosition(shape_.getGlobalBounds().getPosition());
 	rect_.setSize(shape_.getGlobalBounds().getSize());
 	defineTexture(ResourceManager::Resource::kMan);
@@ -23,15 +23,13 @@ woodman::woodman(float x, float y, float linear_speed, Tilemap& tilemap) :tilema
 
 
 
-void woodman::InitiateBehaviour()
+void Farmer::InitiateBehaviour()
 {
 	Path p = astar::CalculatePath(tilemap_.GetWalkable(), last_destination(), getPosition(), 64);
 	set_path(p);
 
 	BtLeaf* check_stamina = new BtLeaf( [this]()
 		{
-
-			//std::cout << "Check Stamina : " << stamina_ << std::endl;
 
 			if (stamina_ >= 0)
 				return Status::kSuccess;
@@ -41,9 +39,9 @@ void woodman::InitiateBehaviour()
 		}
 	);
 
-	BtLeaf* seek_wood = new BtLeaf( [this]()
+	BtLeaf* seek_earth = new BtLeaf( [this]()
 		{
-			return seekwood();
+			return seekearth();
 		}
 	);
 
@@ -76,7 +74,7 @@ void woodman::InitiateBehaviour()
 	main_select->AddNode(home_sequence);
 
 	gather_sequence->AddNode(check_stamina);
-	gather_sequence->AddNode(seek_wood);
+	gather_sequence->AddNode(seek_earth);
 	gather_sequence->AddNode(gather_wood);
 
 	home_sequence->AddNode(back_home);
@@ -87,19 +85,18 @@ void woodman::InitiateBehaviour()
 }
 
 
-Status woodman::seekwood()
+Status Farmer::seekearth()
 {
-	sf::Vector2f closestTree = tilemap_.GetClosestTree(getPosition());
+	sf::Vector2f closestEarth = tilemap_.GetClosestearth(getPosition()); 
 
-	if (squaredMagnitude(closestTree - path_.final_destination_) > std::numeric_limits<float>::epsilon())
+	if (squaredMagnitude(closestEarth - path_.final_destination_) > std::numeric_limits<float>::epsilon()) // ici
 	{
 		//std::cout << "Recalculate path" << std::endl;
-		Path p = astar::CalculatePath(tilemap_.GetWalkable(), last_destination(), closestTree, 64);
+		Path p = astar::CalculatePath(tilemap_.GetWalkable(), last_destination(), closestEarth, 64);
 		set_path(p);
 
 		// - - - - - - - - - - - - - - -
 		stamina_ -= p.GetSteps().size();
-
 	}
 
 	if (!path_.IsAvailable())
@@ -123,10 +120,10 @@ Status woodman::seekwood()
 }
 
 
-Status woodman::Back_home()
+Status Farmer::Back_home()
 {
 
-	sf::Vector2f homePosition =  maison;
+	sf::Vector2f homePosition = maison_;
 
 	if (squaredMagnitude(homePosition - path_.final_destination_) > std::numeric_limits<float>::epsilon())
 	{
@@ -156,9 +153,9 @@ Status woodman::Back_home()
 
 
 
-behaviour_tree::Status woodman::GatherWood()
+behaviour_tree::Status Farmer::GatherWood()
 {
-	if (tilemap_.GatherTree(getPosition()))
+	if (tilemap_.Gatherearther(getPosition()))
 	{
 		//std::cout << "Cutting trees" << std::endl;
 		return Status::kSuccess;
@@ -173,18 +170,18 @@ behaviour_tree::Status woodman::GatherWood()
 
 
 
-void woodman::Tick()
+void Farmer::Tick()
 {
 	walker::Tick();
 	bt_tree_.Tick();
 }
 
-void woodman::defineTexture(ResourceManager::Resource texture)
+void Farmer::defineTexture(ResourceManager::Resource texture)
 {
 	shape_.setTexture(ResourceManager::Get().GetTexture(texture));
 }
 
-woodman::woodman(const woodman& w) : walker(w), tilemap_(w.tilemap_)
+Farmer::Farmer(const Farmer& w) : walker(w), tilemap_(w.tilemap_)
 {
 	stamina_ = w.stamina_;
 	InitiateBehaviour();

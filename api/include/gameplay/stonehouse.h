@@ -1,15 +1,15 @@
-#ifndef BUILDING_H
-#define BUILDING_H
+#ifndef stonehouse_H
+#define stonehouse_H
 #include <SFML/Graphics/Sprite.hpp>
 
 #include "sprite_entity.h"
 
-class Building : public SpriteEntity {
+class stonehouse : public SpriteEntity {
 public:
 
-	Building(float x, float y) :SpriteEntity(x, y)
+	stonehouse(float x, float y) :SpriteEntity(x, y)
 	{
-		defineTexture(ResourceManager::Resource::kMaison1);
+		defineTexture(ResourceManager::Resource::kMaison2);
 	}
 
 protected:

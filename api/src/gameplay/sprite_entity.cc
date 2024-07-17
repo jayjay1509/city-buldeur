@@ -1,7 +1,7 @@
 
 #include <SFML/Graphics/RenderTarget.hpp>
 
-#include "gameplay/building.h"
+#include "gameplay/woodhouse.h"
 #include "tilemaps/RessourceManager.h"
 
 SpriteEntity::SpriteEntity(float x, float y)

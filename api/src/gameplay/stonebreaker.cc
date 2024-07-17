@@ -1,4 +1,4 @@
-#include "gameplay/woodman.h"
+#include "gameplay/stonebreaker.h"
 
 #include <iostream>
 
@@ -11,9 +11,8 @@
 #include "tilemaps/Tilemap.h"
 
 
-woodman::woodman(float x, float y, float linear_speed, Tilemap& tilemap) :tilemap_(tilemap), walker(x, y, linear_speed)
+stonebreaker::stonebreaker(float x, float y, float linear_speed, Tilemap& tilemap) :tilemap_(tilemap), walker(x, y, linear_speed)
 {
-	maison = getPosition();
 	rect_.setPosition(shape_.getGlobalBounds().getPosition());
 	rect_.setSize(shape_.getGlobalBounds().getSize());
 	defineTexture(ResourceManager::Resource::kMan);
@@ -23,7 +22,7 @@ woodman::woodman(float x, float y, float linear_speed, Tilemap& tilemap) :tilema
 
 
 
-void woodman::InitiateBehaviour()
+void stonebreaker::InitiateBehaviour()
 {
 	Path p = astar::CalculatePath(tilemap_.GetWalkable(), last_destination(), getPosition(), 64);
 	set_path(p);
@@ -43,13 +42,13 @@ void woodman::InitiateBehaviour()
 
 	BtLeaf* seek_wood = new BtLeaf( [this]()
 		{
-			return seekwood();
+			return seekstone();
 		}
 	);
 
 	BtLeaf* gather_wood = new BtLeaf( [this]()
 		{
-			return GatherWood();
+			return Gatherstone();
 		}
 	);
 
@@ -87,14 +86,14 @@ void woodman::InitiateBehaviour()
 }
 
 
-Status woodman::seekwood()
+Status stonebreaker::seekstone()
 {
-	sf::Vector2f closestTree = tilemap_.GetClosestTree(getPosition());
+	sf::Vector2f closeststone = tilemap_.GetCloseststone(getPosition());
 
-	if (squaredMagnitude(closestTree - path_.final_destination_) > std::numeric_limits<float>::epsilon())
+	if (squaredMagnitude(closeststone - path_.final_destination_) > std::numeric_limits<float>::epsilon())
 	{
 		//std::cout << "Recalculate path" << std::endl;
-		Path p = astar::CalculatePath(tilemap_.GetWalkable(), last_destination(), closestTree, 64);
+		Path p = astar::CalculatePath(tilemap_.GetWalkable(), last_destination(), closeststone, 64);
 		set_path(p);
 
 		// - - - - - - - - - - - - - - -
@@ -123,10 +122,10 @@ Status woodman::seekwood()
 }
 
 
-Status woodman::Back_home()
+Status stonebreaker::Back_home()
 {
 
-	sf::Vector2f homePosition =  maison;
+	sf::Vector2f homePosition = sf::Vector2f(0, 0);
 
 	if (squaredMagnitude(homePosition - path_.final_destination_) > std::numeric_limits<float>::epsilon())
 	{
@@ -156,9 +155,9 @@ Status woodman::Back_home()
 
 
 
-behaviour_tree::Status woodman::GatherWood()
+behaviour_tree::Status stonebreaker::Gatherstone()
 {
-	if (tilemap_.GatherTree(getPosition()))
+	if (tilemap_.Gatherstone(getPosition()))
 	{
 		//std::cout << "Cutting trees" << std::endl;
 		return Status::kSuccess;
@@ -173,18 +172,18 @@ behaviour_tree::Status woodman::GatherWood()
 
 
 
-void woodman::Tick()
+void stonebreaker::Tick()
 {
 	walker::Tick();
 	bt_tree_.Tick();
 }
 
-void woodman::defineTexture(ResourceManager::Resource texture)
+void stonebreaker::defineTexture(ResourceManager::Resource texture)
 {
 	shape_.setTexture(ResourceManager::Get().GetTexture(texture));
 }
 
-woodman::woodman(const woodman& w) : walker(w), tilemap_(w.tilemap_)
+stonebreaker::stonebreaker(const stonebreaker& w) : walker(w), tilemap_(w.tilemap_)
 {
 	stamina_ = w.stamina_;
 	InitiateBehaviour();

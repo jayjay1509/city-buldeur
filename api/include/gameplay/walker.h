@@ -10,18 +10,23 @@
 
 class walker : public sf::Transformable , public SpriteEntity
 {
-	sf::Vector2f destination_ = {0,0};
+	sf::Vector2f destination_;
 	float linear_speed_;
+protected:
 
 	Path path_;
-public:
 
+public:
 
 	walker(float x, float y, float linear_speed);
 	void set_destination(sf::Vector2f destination);
 	void set_linear_speed(float linear_speed_);
 	void set_path(const Path& path);
 	void Tick();
+	Path GetPath() const;
+	
+
+	sf::Vector2f last_destination() const;
 
 	std::chrono::time_point<std::chrono::steady_clock> last_time ;
 };

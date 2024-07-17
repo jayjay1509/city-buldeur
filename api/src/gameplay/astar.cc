@@ -36,12 +36,17 @@ struct std::hash<sf::Vector2f>
 
 Path astar::CalculatePath(std::vector<sf::Vector2f> positions, sf::Vector2f start, sf::Vector2f end, int tile_map_offset)
 {
+
     Path path;
     sf::Vector2f rounded_end;
     rounded_end.x = end.x - std::fmod(end.x, static_cast<float>(tile_map_offset));
     rounded_end.y = end.y - std::fmod(end.y, static_cast<float>(tile_map_offset));
 
-    positions.emplace_back(start);
+    sf::Vector2f rounded_start;
+    rounded_start.x = start.x - std::fmod(start.x, static_cast<float>(tile_map_offset));
+    rounded_start.y = start.y - std::fmod(start.y, static_cast<float>(tile_map_offset));
+
+    positions.emplace_back(rounded_start);
     positions.emplace_back(rounded_end);
 
     std::priority_queue<PathPoint, std::vector<PathPoint>, std::greater<PathPoint>> opens;
@@ -49,8 +54,8 @@ Path astar::CalculatePath(std::vector<sf::Vector2f> positions, sf::Vector2f star
     std::unordered_set<sf::Vector2f> closed_list;
     std::vector<PathPoint> visited_points;
 
-    opens.emplace(PathPoint{ 0, Magnitude(rounded_end - start), start, -1 });
-    open_list.emplace(start);
+    opens.emplace(PathPoint{ 0, Magnitude(rounded_end - rounded_start), rounded_start, -1 });
+    open_list.emplace(rounded_start);
 
     while (!opens.empty())
     {
@@ -105,7 +110,7 @@ Path astar::CalculatePath(std::vector<sf::Vector2f> positions, sf::Vector2f star
     }
 
     std::cout << "Didn't find the path" << std::endl;
-    std::cout << "Start : " << start.x << " " << start.y << std::endl;
+    std::cout << "Start : " << rounded_start.x << " " << rounded_start.y << std::endl;
     std::cout << "End : " << end.x << " " << end.y << std::endl;
     std::cout << "Rounded end : " << rounded_end.x << " " << rounded_end.y << std::endl;
 

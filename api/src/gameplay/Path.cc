@@ -32,16 +32,20 @@ void Path::setsteps(std::vector<sf::Vector2f> steps)
 {
 	if (!steps.empty())
 	{
+		final_destination_ = steps[steps.size() - 1];
 		step_ = std::queue<sf::Vector2f>();
+		
+
 		for (auto step : steps)
 		{
 			step_.push(step);
 		}
-		
+		is_available = true;
 	}
 	else
 	{
 		is_available = false;
+		//final_destination_ = sf::Vector2f(std::numeric_limits<float>::infinity(), std::numeric_limits<float>::infinity());
 	}
 }
 

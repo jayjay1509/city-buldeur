@@ -18,9 +18,6 @@ private:
     sf::Vector2f position_;
     int parent_ = -1;
 
-
-    
-
     float f() const { return g_ + h_; }
 
    
