@@ -1,7 +1,3 @@
-#ifdef TRACY_ENABLE
-#include <Tracy/Tracy.hpp>
-#endif
-
 #include <SFML/Graphics.hpp>
 #include "ui/Ui_Button.h"
 #include "tilemaps/Tilemap.h"
@@ -13,180 +9,241 @@
 #include "gameplay/Farmer.h"
 #include "gameplay/Farmer_manager.h"
 #include "gameplay/Path.h"
+#include "gameplay/save.h"
 #include "gameplay/stonebreaker.h"
 #include "gameplay/stonebreaker_manager.h"
 #include "gameplay/woodman.h"
 #include "gameplay/woodman_manager.h"
 
+#ifdef TRACY_ENABLE
+#include <Tracy/Tracy.hpp>
+#endif
+
+const float MIN_ZOOM = 0.5f;
+const float MAX_ZOOM = 3.0f;
+const sf::Vector2f VIEW_SIZE(1200, 800);
 
 int main() {
 
     BuildingManager building_manager;
+    save save;
     woodmanManager woodman_manager;
     stonebreakerManager stone_manager;
     Farmer_Manager farmer_manager;
-    //astar atar_astar;
-
-    
 
     sf::RenderWindow window(sf::VideoMode(1200, 800), "Tilemap");
-    
-
     ChangeCursor::BasicCursor(window);
-
     window.setFramerateLimit(60);
-    
-    Tilemap map;
 
+    int food_for_build = 20;
+    int stone_for_build = 20;
+    int wood_for_build = 20;
+
+
+    Tilemap map;
+    map.Setup(sf::Vector2u(120, 120), sf::Vector2u(64, 64));
+    save.LoadLevelFromJson("mapsave2.json", map, building_manager, woodman_manager, farmer_manager, stone_manager);
+    //map.LoadLevelFromJson("map.json");
 
     sf::Vector2i mouse_pos;
     sf::Vector2f mouse_world_pos;
     sf::Vector2i mouse_tile_coord;
     sf::Vector2f hovered_tile_coord;
 
-  
-    
-    
-    map.Setup(sf::Vector2u(120, 120), sf::Vector2u(64, 64));
-
-    map.LoadLevelFromJson("map.json");
-
-    UiButton btn_generate(sf::Vector2f(50, 710), sf::Color::Yellow, "Generate");
-    //btn_generate.setScale(0.5f, 0.5f);
-   
-	//map.Generate();
-
-    //map.FindStones();
-
-    woodman jay(4500, 500, 64, map);
-
-    sf::Vector2f pos = sf::Vector2f(0, 0);
-
-    Farmer jay2(4500, 500, 64, map, pos);
-
-    stonebreaker jay3(4500, 500, 64, map);
-
+    sf::Vector2f tile_size(map.playground_tile_offset_u_.x, map.playground_tile_offset_u_.y);
 
    
+    // btn_generate.setScale(0.5f, 0.5f);
 
-    UiButton btn_activate_woodhouse(sf::Vector2f(300, 710), sf::Color::Yellow, "wood");
-    //btn_activate_building.setScale(0.5f, 0.5f);
-    btn_activate_woodhouse.callback_ = [&building_manager, &window, &map, &hovered_tile_coord, &woodman_manager]()
+    sf::Font font;
+    sf::Text woodText;
+    sf::Text foodText;
+    sf::Text stoneText;
+    sf::Text timeText;
+    sf::Text cutPercentageWoodText_;
+    sf::Text cutPercentageStoneText_;
+    sf::Text cutPercentageFoodText_;
+
+	font.loadFromFile("../resources/fonts/arial.ttf");
+    woodText.setFont(font);
+    woodText.setCharacterSize(24);
+    woodText.setFillColor(sf::Color::Black);
+    woodText.setPosition(10, 10); 
+
+    foodText.setFont(font);
+    foodText.setCharacterSize(24);
+    foodText.setFillColor(sf::Color::Black);
+    foodText.setPosition(10, 40); 
+
+    stoneText.setFont(font);
+    stoneText.setCharacterSize(24);
+    stoneText.setFillColor(sf::Color::Black);
+    stoneText.setPosition(10, 70);
+
+    cutPercentageWoodText_.setFont(font);
+    cutPercentageWoodText_.setCharacterSize(24);
+    cutPercentageWoodText_.setFillColor(sf::Color::Black);
+    cutPercentageWoodText_.setPosition(window.getSize().x - 200, 40);
+
+    cutPercentageStoneText_.setFont(font);
+    cutPercentageStoneText_.setCharacterSize(24);
+    cutPercentageStoneText_.setFillColor(sf::Color::Black);
+    cutPercentageStoneText_.setPosition(window.getSize().x - 200, 70);
+
+    cutPercentageFoodText_.setFont(font);
+    cutPercentageFoodText_.setCharacterSize(24);
+    cutPercentageFoodText_.setFillColor(sf::Color::Black);
+    cutPercentageFoodText_.setPosition(window.getSize().x - 200, 100);
+
+    timeText.setFont(font);
+    timeText.setCharacterSize(24);
+    timeText.setFillColor(sf::Color::Black);
+    timeText.setPosition(window.getSize().x - 350, 10);
+
+
+    bool foodhouseActivateMode = false;
+    bool foodhouseSec = false;
+    bool woodhouseActivateMode = false;
+    bool woodhouseSec = false;
+    bool stonehouseActivateMode = false;
+    bool stonehouseSec = false;
+
+
+
+    UiButton btn_save(sf::Vector2f( window.getSize().x - 100, 750), sf::Color::Yellow, "save");
+
+    btn_save.callback_ = [&save, &map, &building_manager]() {
+        save.SaveLevelToJson("map.json", map, building_manager);
+        };
+
+    UiButton btn_reset(sf::Vector2f(window.getSize().x - 100, 650), sf::Color::Yellow, "reset");
+
+    btn_reset.callback_ = [&save, &map, &building_manager, &woodman_manager, &farmer_manager, &stone_manager]() {
+        save.LoadLevelFromJson("mapsave.json", map, building_manager, woodman_manager, farmer_manager, stone_manager);
+        save.SaveLevelToJson("map.json", map, building_manager);
+        };
+
+    UiButton btn_activate_foodhouse(sf::Vector2f(400, 750), sf::Color::White, "food");
+    btn_activate_foodhouse.callback_ = [&building_manager, &window, &foodhouseActivateMode, &btn_activate_foodhouse,&map, &food_for_build]()
         {
-            if (building_manager.GetActive())
+            if (map.getFood() >= food_for_build)
             {
-                building_manager.SetActive(false);
-                ChangeCursor::BasicCursor(window);
+                btn_activate_foodhouse.settexture_green();
+                if (foodhouseActivateMode)
+                {
+                    foodhouseActivateMode = false;
+                    building_manager.SetActive(false);
+                    ChangeCursor::BasicCursor(window);
+                }
+                else
+                {
+                    foodhouseActivateMode = true;
+                    ChangeCursor::BuildingCursor(window);
+                    building_manager.SetActive(true);
+                }
             }
             else
             {
-                building_manager.SetActive(true);
-
-                // Créer des lambdas pour les deux fonctions
-                auto addWoodhouse = [&building_manager, &hovered_tile_coord](Tile& tile) {
-                    building_manager.Addwoodhouse(tile, hovered_tile_coord);
-                    };
-                auto addWoodman = [&woodman_manager, &map](Tile& tile) {
-                    woodman_manager.Addwoodman(tile, map);
-                    };
-
-                // Créer une fonction lambda qui appelle les deux lambdas
-                map.ClickedTile = [addWoodhouse, addWoodman](Tile& tile) {
-                    addWoodhouse(tile);
-                    addWoodman(tile);
-                    };
-
-                ChangeCursor::BuildingCursor(window);
+                btn_activate_foodhouse.settexture_red();
             }
         };
 
-    UiButton btn_activate_stonehouse(sf::Vector2f(200, 710), sf::Color::Yellow, "stone");
-    //btn_activate_building.setScale(0.5f, 0.5f);
-    btn_activate_stonehouse.callback_ = [&building_manager, &window, &map, &hovered_tile_coord ,&stone_manager]()
+    UiButton btn_activate_woodhouse(sf::Vector2f(250, 750), sf::Color::White, "wood");
+    btn_activate_woodhouse.callback_ = [&building_manager, &window, &woodhouseActivateMode,&map,&wood_for_build , &btn_activate_woodhouse]()
         {
-            if (building_manager.GetActive())
+            if (map.getWood() >= wood_for_build)
             {
-                building_manager.SetActive(false);
-                ChangeCursor::BasicCursor(window);
+                btn_activate_woodhouse.settexture_green();
+                if (woodhouseActivateMode)
+                {
+                    woodhouseActivateMode = false;
+                    building_manager.SetActive(false);
+                    ChangeCursor::BasicCursor(window);
+                }
+                else
+                {
+                    woodhouseActivateMode = true;
+                    ChangeCursor::BuildingCursor(window);
+                    building_manager.SetActive(true);
+                }
             }
             else
             {
-                building_manager.SetActive(true);
-
-                // Créer des lambdas pour Addstonehouse et Addstonebreaker
-                auto addStonehouse = [&building_manager, &hovered_tile_coord](Tile& tile) {
-                    building_manager.Addstonehouse(tile, hovered_tile_coord);
-                    };
-                auto addStonebreaker = [&stone_manager, &map](Tile& tile) {
-                    stone_manager.Addstonebreaker(tile, map);
-                    };
-
-                // Assigner une lambda à map.ClickedTile qui appelle les deux lambdas
-                map.ClickedTile = [addStonehouse, addStonebreaker](Tile& tile) {
-                    addStonehouse(tile);
-                    addStonebreaker(tile);
-                    };
-
-                ChangeCursor::BuildingCursor(window);
+                btn_activate_woodhouse.settexture_red();
             }
         };
-   
-    UiButton btn_activate_foodhouse(sf::Vector2f(400, 710), sf::Color::Yellow, "food");
-    //btn_activate_building.setScale(0.5f, 0.5f);
-    btn_activate_foodhouse.callback_ = [&building_manager, &window, &map, &hovered_tile_coord, &farmer_manager]()
+
+    UiButton btn_activate_stonehouse(sf::Vector2f(100, 750), sf::Color::White, "stone");
+    btn_activate_stonehouse.callback_ = [&building_manager, &window, &stonehouseActivateMode,&map, &stone_for_build, &btn_activate_stonehouse]()
         {
-            if (building_manager.GetActive())
+            if (map.getWood() >= stone_for_build)
             {
-                building_manager.SetActive(false);
-                ChangeCursor::BasicCursor(window);
+                btn_activate_stonehouse.settexture_green();
+                if (stonehouseActivateMode)
+                {
+                    stonehouseActivateMode = false;
+                    building_manager.SetActive(false);
+                    ChangeCursor::BasicCursor(window);
+                }
+                else
+                {
+                    stonehouseActivateMode = true;
+                    ChangeCursor::BuildingCursor(window);
+                    building_manager.SetActive(true);
+                }
             }
             else
             {
-                building_manager.SetActive(true);
-
-                // Créer des lambdas pour Addfoodhouse et AddFarmer
-                auto addFoodhouse = [&building_manager, &hovered_tile_coord](Tile& tile) {
-                    building_manager.Addfoodhouse(tile, hovered_tile_coord);
-                    };
-                auto addFarmer = [&farmer_manager, &map](Tile& tile) {
-                    farmer_manager.AddFarmer(tile, map);
-                    };
-
-                // Assigner une lambda à map.ClickedTile qui appelle les deux lambdas
-                map.ClickedTile = [addFoodhouse, addFarmer](Tile& tile) {
-                    addFoodhouse(tile);
-                    addFarmer(tile);
-                    };
-
-                ChangeCursor::BuildingCursor(window);
+                btn_activate_stonehouse.settexture_red();
             }
         };
-    
-    sf::View view(sf::FloatRect(0, 0, 1200, 800));
-    sf::View view_Hud(sf::FloatRect(0, 0, 1200, 800));
-    
 
-    view.setCenter(600, 400); 
-    view_Hud.setCenter(600, 400); 
-
-     
-    UiButton startButton(sf::Vector2f(400, 100), sf::Color::Yellow, "salut");
-    startButton.setScale(0.75f, 0.75f);
-    startButton.callback_ = [&map]() {
-        map.Generate();
+    map.ClickedTile = [&building_manager, &farmer_manager, &woodman_manager, &stone_manager, &hovered_tile_coord, &map, &foodhouseActivateMode, &foodhouseSec, &woodhouseActivateMode, &woodhouseSec, &stonehouseActivateMode, &stonehouseSec, &window, &food_for_build,&stone_for_build ,&wood_for_build](Tile& tile)
+        {
+            if (foodhouseActivateMode && foodhouseSec)
+            {
+                building_manager.Addfoodhouse(tile, hovered_tile_coord, map);
+                farmer_manager.AddFarmer(tile, map);
+                foodhouseActivateMode = false;
+                building_manager.SetActive(false);
+                ChangeCursor::BasicCursor(window);
+                foodhouseSec = false;
+                map.setfood(food_for_build);
+                food_for_build += food_for_build;
+            }
+            else if (woodhouseActivateMode && woodhouseSec)
+            {
+                building_manager.Addwoodhouse(tile, hovered_tile_coord, map);
+                woodman_manager.Addwoodman(tile, map);
+                woodhouseActivateMode = false;
+                building_manager.SetActive(false);
+                ChangeCursor::BasicCursor(window);
+                woodhouseSec = false;
+                map.setWood(wood_for_build);
+                wood_for_build += wood_for_build;
+            }
+            else if (stonehouseActivateMode && stonehouseSec)
+            {
+                building_manager.Addstonehouse(tile, hovered_tile_coord, map);
+                stone_manager.Addstonebreaker(tile, map);
+                stonehouseActivateMode = false;
+                building_manager.SetActive(false);
+                ChangeCursor::BasicCursor(window);
+                stonehouseSec = false;
+                map.setstone(stone_for_build);
+                stone_for_build = stone_for_build * 1.2;
+            }
+            if (foodhouseActivateMode) foodhouseSec = true;
+            if (woodhouseActivateMode) woodhouseSec = true;
+            if (stonehouseActivateMode) stonehouseSec = true;
         };
 
-
-
-    UiButton woodmanButton(sf::Vector2f(500, 100), sf::Color::Green, "woodman");
-    woodmanButton.setScale(0.75f, 0.75f);
-    woodmanButton.callback_ = [&woodman_manager, &window, &map]() {
-        map.ClickedTile = std::bind(&woodmanManager::Addwoodman, &woodman_manager, std::placeholders::_1, std::ref(map));
-        };
-
+    sf::View view(sf::FloatRect(0, 0, VIEW_SIZE.x, VIEW_SIZE.y));
+    sf::View view_Hud(sf::FloatRect(0, 0, VIEW_SIZE.x, VIEW_SIZE.y));
+    view.setCenter(VIEW_SIZE.x / 2, VIEW_SIZE.y / 2);
+    view_Hud.setCenter(VIEW_SIZE.x / 2, VIEW_SIZE.y / 2);
 
     sf::RectangleShape hovered_tile;
-    sf::Vector2f tile_size(map.playground_tile_offset_u_.x, map.playground_tile_offset_u_.y);
     hovered_tile.setSize(tile_size);
     hovered_tile.setFillColor(sf::Color(100, 100, 100, 180));
     hovered_tile.setOutlineColor(sf::Color::Green);
@@ -195,43 +252,98 @@ int main() {
 
     while (window.isOpen()) {
 
-        jay.Tick();
 
-        jay2.Tick();
-
-        jay3.Tick();
-
-	    for (auto& woodman : woodman_manager.woodmans_)
-	    {
-            woodman.Tick();
-	    }
-
-        for (auto& farmer : farmer_manager.farmers_)
+        if (map.getFood() >= food_for_build) 
         {
-            farmer.Tick();
+            btn_activate_foodhouse.settexture_green();
+        }
+        else
+        {
+            btn_activate_foodhouse.settexture_red();
         }
 
-        for (auto& stone : stone_manager.stonebreakers_)
+        if (map.getStone() >= stone_for_build)
         {
-            stone.Tick();
+            btn_activate_stonehouse.settexture_green();
+        }
+        else
+        {
+            btn_activate_stonehouse.settexture_red();
         }
 
-        
+        if (map.getWood() >= wood_for_build)
+        {
+            btn_activate_woodhouse.settexture_green();
+        }
+        else
+        {
+            btn_activate_woodhouse.settexture_red();
+        }
 
-        // Calculate hovered tile position
-    	mouse_pos = sf::Mouse::getPosition(window);
-        mouse_world_pos = window.mapPixelToCoords(mouse_pos, view);
 
-        mouse_tile_coord.x = static_cast<int>(std::floor(mouse_world_pos.x / tile_size.x));
-        mouse_tile_coord.y = static_cast<int>(std::floor(mouse_world_pos.y / tile_size.y));
+        std::ostringstream oss;
+        for (auto& woodman : woodman_manager.woodmans_) woodman.Tick();
+        for (auto& farmer : farmer_manager.farmers_) farmer.Tick();
+        for (auto& stone : stone_manager.stonebreakers_) stone.Tick();
+        map.Tick();
+        if (map.getmonth() == 0 && map.getyear() == 0)
+        {
+            map.set_time();
+        }
 
-        hovered_tile_coord.x = static_cast<float>(mouse_tile_coord.x) * tile_size.x;
-        hovered_tile_coord.y = static_cast<float>(mouse_tile_coord.y) * tile_size.y;
+
+        woodText.setString("Wood: " + std::to_string(map.getWood()));
+        foodText.setString("Food: " + std::to_string(map.getFood()));
+        stoneText.setString("Stone: " + std::to_string(map.getStone()));
+        timeText.setString("Day: " + std::to_string(map.getday()) + " Month: " + std::to_string(map.getmonth()) + " Year: " + std::to_string(map.getyear()));
        
 
-        hovered_tile.setPosition(hovered_tile_coord.x, hovered_tile_coord.y);
+       
+        oss << std::fixed << std::setprecision(2) << map.getCutPercentageWood();
+        if (map.getCutPercentageWood() >= 50.0)
+        {
+            cutPercentageWoodText_.setColor(sf::Color::Red);
+        }
+        else
+        {
+            cutPercentageWoodText_.setColor(sf::Color::Black);
+        }
+        cutPercentageWoodText_.setString("Wood Cut %: " + oss.str());
+        oss.str(""); 
 
-        //std::cout << "pos :" << hovered_tile_coord.x << "  :  " << hovered_tile_coord.y << "\n";
+      
+        oss << std::fixed << std::setprecision(2) << map.getCutPercentageStone();
+        if (map.getCutPercentageStone() >= 50.0)
+        {
+            cutPercentageStoneText_.setColor(sf::Color::Red);
+        }
+        else
+        {
+            cutPercentageStoneText_.setColor(sf::Color::Black);
+        }
+        cutPercentageStoneText_.setString("Stone Cut %: " + oss.str());
+        oss.str(""); 
+
+     
+        oss << std::fixed << std::setprecision(2) << map.getCutPercentageFood();
+        if (map.getCutPercentageFood() >= 50.0)
+        {
+            cutPercentageFoodText_.setColor(sf::Color::Red);
+        }
+        else
+        {
+            cutPercentageFoodText_.setColor(sf::Color::Black);
+        }
+        cutPercentageFoodText_.setString(" Food Cut %: " + oss.str());
+        oss.str(""); 
+
+        mouse_pos = sf::Mouse::getPosition(window);
+        mouse_world_pos = window.mapPixelToCoords(mouse_pos, view);
+        mouse_tile_coord.x = static_cast<int>(std::floor(mouse_world_pos.x / tile_size.x));
+        mouse_tile_coord.y = static_cast<int>(std::floor(mouse_world_pos.y / tile_size.y));
+        hovered_tile_coord.x = static_cast<float>(mouse_tile_coord.x) * tile_size.x;
+        hovered_tile_coord.y = static_cast<float>(mouse_tile_coord.y) * tile_size.y;
+        hovered_tile.setPosition(hovered_tile_coord.x, hovered_tile_coord.y);
 
 #ifdef TRACY_ENABLE
         ZoneScoped;
@@ -250,106 +362,106 @@ int main() {
                 else if (event.mouseWheelScroll.delta < 0) {
                     view.zoom(1.1f); // Zoom out
                 }
+                // Limiter le zoom
+                float currentZoom = view.getSize().x / VIEW_SIZE.x;
+                if (currentZoom < MIN_ZOOM) {
+                    view.setSize(VIEW_SIZE * MIN_ZOOM);
+                }
+                else if (currentZoom > MAX_ZOOM) {
+                    view.setSize(VIEW_SIZE * MAX_ZOOM);
+                }
                 window.setView(view); // Update the window with the new view
                 break;
-            default:
-                break;
+
             }
-            startButton.HandleEvent(event);
-            woodmanButton.HandleEvent(event);
-            btn_generate.HandleEvent(event);
+            
             btn_activate_woodhouse.HandleEvent(event);
             btn_activate_stonehouse.HandleEvent(event);
             btn_activate_foodhouse.HandleEvent(event);
-            map.HandleEvent(event,window);
+            map.HandleEvent(event, window);
+            btn_save.HandleEvent(event);
+            btn_reset.HandleEvent(event);
         }
-        
-        sf::Vector2f postion;
-        // Move the view based on keyboard input
+
+        // Move the view based on keyboard input and constrain the movement
+        sf::Vector2f moveDelta;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-            /*postion = sf::Vector2f(postion.x - 100000, postion.y);
-            view.move(postion.x / 300, postion.y);
-            window.setPosition(sf::Vector2i(window.getPosition().x + postion.x / 2560, window.getPosition().y));*/
-            view.move(-100, 0);
-            //view_Hud.move(-100, 0);
-            
+            moveDelta.x = -100;
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-            /*postion = sf::Vector2f(postion.x + 100000, postion.y);
-            view.move(postion.x / 300, postion.y);
-            window.setPosition(sf::Vector2i(window.getPosition().x + postion.x / 2560, window.getPosition().y));*/
-            view.move(100, 0);
-            //view_Hud.move(100, 0);
+            moveDelta.x = 100;
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-            /*postion = sf::Vector2f(postion.x , postion.y - 100000);
-            view.move(postion.x , postion.y / 200);
-            window.setPosition(sf::Vector2i(window.getPosition().x, window.getPosition().y + postion.y / 1600));*/
-            view.move(0, -100);
-            //view_Hud.move(0, -100);
+            moveDelta.y = -100;
         }
         else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-            /*postion = sf::Vector2f(postion.x, postion.y + 100000);
-            view.move(postion.x, postion.y / 200);
-            window.setPosition(sf::Vector2i(window.getPosition().x, window.getPosition().y + postion.y / 1600));*/
-            view.move(0, 100);
-            //view_Hud.move(0, 100);
+            moveDelta.y = 100;
         }
+        view.move(moveDelta);
+
+        // Limiter le déplacement
+                // Limiter le déplacement
+        sf::FloatRect viewBounds = view.getViewport();
+        sf::Vector2f viewCenter = view.getCenter();
+        sf::Vector2f viewSize = view.getSize();
+
+        sf::Vector2f mapBounds(120* tile_size.x, 120 * tile_size.y);
+
+        if (viewCenter.x - viewSize.x / 2 < 0)
+            view.setCenter(viewSize.x / 2, viewCenter.y);
+        if (viewCenter.x + viewSize.x / 2 > mapBounds.x)
+            view.setCenter(mapBounds.x - viewSize.x / 2, viewCenter.y);
+        if (viewCenter.y - viewSize.y / 2 < 0)
+            view.setCenter(viewCenter.x, viewSize.y / 2);
+        if (viewCenter.y + viewSize.y / 2 > mapBounds.y)
+            view.setCenter(viewCenter.x, mapBounds.y - viewSize.y / 2);
+
+        window.setView(view);
+
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::F1)) {
-            map.LoadLevelFromJson("map.json");
+            save.LoadLevelFromJson("map.json", map, building_manager, woodman_manager, farmer_manager, stone_manager);
             std::cout << "load map 1 \n";
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::F2)) {
-            map.SaveLevelToJson("map.json");
+            save.SaveLevelToJson("map.json", map, building_manager);
             std::cout << "save map 1 \n";
         }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1)) {
-            map.LoadLevelFromJson("map_1.json");
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2)) {
-            map.SaveLevelToJson("map_1.json");
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3)) {
-            map.LoadLevelFromJson("map_2.json");
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num4)) {
-            map.SaveLevelToJson("map_2.json");
-        }
 
-        //todo ne pas oublei de cheker que la caasse seletion pour aller sur la case walkable 
+        // Gestion des clics pour les différentes actions
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Right)
         {
-            Tile* tile = map.GetTile(hovered_tile_coord);
-
-            //tile->Set_Stone_2(TileType::kStone1);
-
+            /*Tile* tile = map.GetTile(hovered_tile_coord);
+            map.GetTile(hovered_tile_coord)->Set_Stone(TileType::kStone1);*/
         }
 
         window.clear();
 
         window.setView(view);
         window.draw(map);
-       
         window.draw(building_manager);
         window.draw(woodman_manager);
         window.draw(farmer_manager);
         window.draw(stone_manager);
-       
         window.draw(hovered_tile);
-        window.draw(jay);
-        window.draw(jay2);
-        window.draw(jay3);
-        
+
+
+       
+
 
         window.setView(view_Hud);
-        window.draw(startButton);
-        window.draw(woodmanButton);
-        window.draw(btn_generate);
+        window.draw(woodText);
+        window.draw(foodText);
+        window.draw(stoneText);
+        window.draw(timeText);
+        window.draw(cutPercentageWoodText_);
+        window.draw(cutPercentageStoneText_);
+        window.draw(cutPercentageFoodText_);
         window.draw(btn_activate_foodhouse);
         window.draw(btn_activate_stonehouse);
         window.draw(btn_activate_woodhouse);
+        window.draw(btn_save);
+        window.draw(btn_reset);
         window.setView(view);
-        
 
         window.display();
     }
@@ -358,8 +470,10 @@ int main() {
     FrameMark;
 #endif
 
-
     return 0;
 }
+
+
+
 
 

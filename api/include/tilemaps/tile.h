@@ -6,23 +6,29 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 #include "RessourceManager.h"
 
-enum class TileType {
-    kForet1,
-    kForetCoupe1,
-    kSand1,
-    kSnow1,
-    kStone1,
-    kStone2,
-    kTerre1,
-    kTerre2,
-    kWater1,
-    kMan,
-    kMaison1,
-    kMaison2,
-    kMaison3,
-    kEnd
-};
-
+enum class TileType 
+    {
+        kForet1,
+            kForetCoupe1,
+            kSand1,
+            kSnow1,
+            kStone1,
+            kStone2,
+            kTerre1,
+            kTerre2,
+            kWater1,
+            kMan,
+            kMan2,
+            kMan3,
+            kMaison1,
+            kMaison2,
+            kMaison3,
+            Kgreen,
+			KBallon,
+			KButtongren,
+			KButtonred,
+            kEnd
+    };
 
 class Tile : public sf::Drawable
 {
@@ -38,10 +44,13 @@ public:
     sf::Texture& GetFromType();
     void UpdateSprite();
     void set_walkable(bool cond) ;
+    void Set_Tree_cut(TileType newtiletype);
     void Set_Tree(TileType newtiletype);
+    void Set_earther_cut(TileType newtiletype);
     void Set_earther(TileType newtiletype);
+    void Set_house(TileType newtiletype);
+    void Set_Stone_cut(TileType newtiletype);
     void Set_Stone(TileType newtiletype);
-    void Set_Stone_2(TileType newtiletype);
 
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

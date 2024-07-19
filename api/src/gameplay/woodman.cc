@@ -168,6 +168,33 @@ behaviour_tree::Status woodman::GatherWood()
 	return Status::kFailure;
 }
 
+void woodman::pantsballon()
+{
+	sf::Vector2f pos = getPosition();
+	sf::Vector2f mouse_tile_coord;
+	sf::Vector2f hovered_tile_coord;
+	int tile_size = 64;
+
+
+	mouse_tile_coord.x = static_cast<int>(std::floor(pos.x / tile_size));
+	mouse_tile_coord.y = static_cast<int>(std::floor(pos.y / tile_size));
+
+	hovered_tile_coord.x = static_cast<float>(mouse_tile_coord.x) * tile_size;
+	hovered_tile_coord.y = static_cast<float>(mouse_tile_coord.y) * tile_size;
+
+	bool water_ = tilemap_.IsPositionInWater(hovered_tile_coord);
+	if (water_)
+	{
+
+		defineTexture(ResourceManager::Resource::KBallon);
+	}
+	else
+	{
+		defineTexture(ResourceManager::Resource::kMan);
+	}
+
+
+}
 
 
 
@@ -175,6 +202,7 @@ behaviour_tree::Status woodman::GatherWood()
 
 void woodman::Tick()
 {
+	pantsballon();
 	walker::Tick();
 	bt_tree_.Tick();
 }
@@ -184,8 +212,9 @@ void woodman::defineTexture(ResourceManager::Resource texture)
 	shape_.setTexture(ResourceManager::Get().GetTexture(texture));
 }
 
-woodman::woodman(const woodman& w) : walker(w), tilemap_(w.tilemap_)
+woodman::woodman(const woodman& w) : walker(w), tilemap_(w.tilemap_) ,maison(w.maison)
 {
+	maison = w.maison;
 	stamina_ = w.stamina_;
 	InitiateBehaviour();
 }

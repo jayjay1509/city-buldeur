@@ -13,9 +13,11 @@
 
 stonebreaker::stonebreaker(float x, float y, float linear_speed, Tilemap& tilemap) :tilemap_(tilemap), walker(x, y, linear_speed)
 {
+	maison = getPosition();
+	std::cout << maison.x << maison.y << "\n";
 	rect_.setPosition(shape_.getGlobalBounds().getPosition());
 	rect_.setSize(shape_.getGlobalBounds().getSize());
-	defineTexture(ResourceManager::Resource::kMan);
+	defineTexture(ResourceManager::Resource::kMan2);
 	InitiateBehaviour();
 }
 
@@ -125,7 +127,8 @@ Status stonebreaker::seekstone()
 Status stonebreaker::Back_home()
 {
 
-	sf::Vector2f homePosition = sf::Vector2f(0, 0);
+	sf::Vector2f homePosition = maison;
+
 
 	if (squaredMagnitude(homePosition - path_.final_destination_) > std::numeric_limits<float>::epsilon())
 	{
@@ -167,13 +170,40 @@ behaviour_tree::Status stonebreaker::Gatherstone()
 	return Status::kFailure;
 }
 
+void stonebreaker::pantsballon()
+{
+	sf::Vector2f pos = getPosition();
+	sf::Vector2f mouse_tile_coord;
+	sf::Vector2f hovered_tile_coord;
+	int tile_size = 64;
 
+
+	mouse_tile_coord.x = static_cast<int>(std::floor(pos.x / tile_size));
+	mouse_tile_coord.y = static_cast<int>(std::floor(pos.y / tile_size));
+
+	hovered_tile_coord.x = static_cast<float>(mouse_tile_coord.x) * tile_size;
+	hovered_tile_coord.y = static_cast<float>(mouse_tile_coord.y) * tile_size;
+
+	bool water_ = tilemap_.IsPositionInWater(hovered_tile_coord);
+	if (water_)
+	{
+
+		defineTexture(ResourceManager::Resource::KBallon);
+	}
+	else
+	{
+		defineTexture(ResourceManager::Resource::kMan2);
+	}
+
+
+}
 
 
 
 
 void stonebreaker::Tick()
 {
+	pantsballon();
 	walker::Tick();
 	bt_tree_.Tick();
 }
@@ -183,8 +213,9 @@ void stonebreaker::defineTexture(ResourceManager::Resource texture)
 	shape_.setTexture(ResourceManager::Get().GetTexture(texture));
 }
 
-stonebreaker::stonebreaker(const stonebreaker& w) : walker(w), tilemap_(w.tilemap_)
+stonebreaker::stonebreaker(const stonebreaker& w) : walker(w), tilemap_(w.tilemap_) , maison(w.maison)
 {
+	maison = w.maison;
 	stamina_ = w.stamina_;
 	InitiateBehaviour();
 }

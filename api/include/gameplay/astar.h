@@ -56,13 +56,9 @@ const std::array<sf::Vector2f, 4> KNeighbours = {
     sf::Vector2f(-1, 0)
 };
 
-namespace astar //todo a retier 
+namespace astar 
 {
-
-
     Path CalculatePath(std::vector<sf::Vector2f> position, sf::Vector2f start, sf::Vector2f end, int tile_map_offset);
-
-
 };
 
 #endif // ASTAR_H_

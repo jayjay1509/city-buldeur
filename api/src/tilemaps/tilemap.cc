@@ -8,6 +8,8 @@
 #include <vector>
 #include <limits>
 
+
+#include "gameplay/Farmer.h"
 #include "gameplay/sfml_vec2f.h"
 #ifdef TRACY_ENABLE
 #include <Tracy/Tracy.hpp>
@@ -19,6 +21,28 @@
 //sf::Vector2u Tilemap::playground_tile_offset_u_ = sf::Vector2u(18, 18);
 
 int generated = 0;
+
+Tilemap::Tilemap() : interval_(sf::seconds(1))
+{
+	auto now = std::chrono::system_clock::now();
+	std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+	std::tm* now_tm = std::localtime(&now_c);
+
+	day = now_tm->tm_mday;
+	month = now_tm->tm_mon + 1; 
+	year = now_tm->tm_year + 1900;
+}
+
+void Tilemap::set_time()
+{
+	auto now = std::chrono::system_clock::now();
+	std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+	std::tm* now_tm = std::localtime(&now_c);
+
+	day = now_tm->tm_mday;
+	month = now_tm->tm_mon + 1;
+	year = now_tm->tm_year + 1900;
+}
 
 void Tilemap::Setup(sf::Vector2u playground_size_u, sf::Vector2u playground_tile_offset_u)
 {
@@ -155,28 +179,33 @@ void Tilemap::Generate()
 			{
 				// la 2eme 
 			case TileType::kForet1: resource = ResourceManager::Resource::kForet1;
+				tiles_.emplace_back(resource, x * playground_tile_offset_u_.x, y * playground_tile_offset_u_.y, true, tileType);
 				Trees_.emplace_back(x * playground_tile_offset_u_.x, y * playground_tile_offset_u_.y);
 				break;
 			case TileType::kSand1: resource = ResourceManager::Resource::kSand1;
+				tiles_.emplace_back(resource, x * playground_tile_offset_u_.x, y * playground_tile_offset_u_.y, true, tileType);
 				break;
 			case TileType::kSnow1: resource = ResourceManager::Resource::kSnow1;
+				tiles_.emplace_back(resource, x * playground_tile_offset_u_.x, y * playground_tile_offset_u_.y, true, tileType);
 				break;
 			case TileType::kTerre1: resource = ResourceManager::Resource::kTerre1;
+				tiles_.emplace_back(resource, x * playground_tile_offset_u_.x, y * playground_tile_offset_u_.y, true, tileType);
 				earths_.emplace_back(x * playground_tile_offset_u_.x, y * playground_tile_offset_u_.y);
 				break;
 			case TileType::kWater1: resource = ResourceManager::Resource::kWater1;
+				water_.emplace_back(x * playground_tile_offset_u_.x, y * playground_tile_offset_u_.y);
+				tiles_.emplace_back(resource, x * playground_tile_offset_u_.x, y * playground_tile_offset_u_.y, false, tileType);
 				break;
 			case TileType::kStone1: resource = ResourceManager::Resource::kStone1;
+				tiles_.emplace_back(resource, x * playground_tile_offset_u_.x, y * playground_tile_offset_u_.y, true, tileType);
 				Stones_.emplace_back(x * playground_tile_offset_u_.x, y * playground_tile_offset_u_.y);
 				break;
-			default: resource = ResourceManager::Resource::kWater1;
+			default: resource = ResourceManager::Resource::Kgreen;
+				tiles_.emplace_back(resource, x * playground_tile_offset_u_.x, y * playground_tile_offset_u_.y, true, tileType);
 				break;
 			}
 
-			tiles_.emplace_back(resource, x * playground_tile_offset_u_.x, y * playground_tile_offset_u_.y, true, tileType);
-
-
-		}
+		} 
 	}
 
 
@@ -312,250 +341,15 @@ void Tilemap::HandleEvent(const sf::Event& event,const sf::RenderWindow& window)
 
 void Tilemap::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-
-	// Draw all tiles
 	for (const auto& tile : tiles_)
 	{
 		target.draw(tile, states);
 	}
-
-	/*
-	 *Draw all walkable tiles
-
-	auto tile = tiles_.begin();
-	while (tile != tiles_.end())
-	{
-		tile = std::find_if(tile, tiles_.end(), [](const Tile& t) {return t.Walkable(); });
-		if(tile != tiles_.end())
-		{
-			target.draw(*tile, states);
-			++tile;
-		}
-
-	}
-	*/
-
-	/*
-	 *Draw only the tiles that are in the view
-
-	auto tile = tiles_.begin();
-	while (tile != tiles_.end())
-	{
-		tile = std::find_if(tile, tiles_.end(), [](const Tile& t) {return t.Position().x > 20 && t.Position().x < 150; });
-		if (tile >= tiles_.end())
-			break;
-
-		//
-		target.draw(*tile, states);
-		++tile;
-	}
-	*/
 }
 
 
 
-void Tilemap::SaveLevelToJson(const std::string& file_name)
-{
-#ifdef TRACY_ENABLE
-	ZoneScoped;
-#endif
-	std::cout << "save map 1.1 \n";
 
-	nlohmann::json json_level;
-	json_level["Y_total"] = playground_size_u_.y;
-	json_level["X_total"] = playground_size_u_.x;
-	json_level["pixel_x"] = playground_tile_offset_u_.x;
-	json_level["pixel_y"] = playground_tile_offset_u_.y;
-
-	json_level["tiles"] = nlohmann::json::array();
-	for (const auto& tile : tiles_)
-	{
-		nlohmann::json tileData;
-		tileData["x"] = tile.Position().x;
-		tileData["y"] = tile.Position().y;
-		tileData["type"] = static_cast<int>(tile.GetType());
-		json_level["tiles"].push_back(tileData);
-	}
-
-	json_level["trees"] = nlohmann::json::array();
-	for (const auto& tree : Trees_)
-	{
-		nlohmann::json treeData;
-		treeData["x"] = tree.x;
-		treeData["y"] = tree.y;
-		json_level["trees"].push_back(treeData);
-	}
-
-	json_level["trees_cut"] = nlohmann::json::array();
-	for (const auto& tree_cut : Trees_cut_)
-	{
-		nlohmann::json treeCutData;
-		treeCutData["x"] = tree_cut.x;
-		treeCutData["y"] = tree_cut.y;
-		json_level["trees_cut"].push_back(treeCutData);
-	}
-
-	json_level["earths"] = nlohmann::json::array();
-	for (const auto& earths : earths_)
-	{
-		nlohmann::json earthsData;
-		earthsData["x"] = earths.x;
-		earthsData["y"] = earths.y;
-		json_level["earths"].push_back(earthsData);
-	}
-
-	json_level["earths_cut"] = nlohmann::json::array();
-	for (const auto& earths_cut : earths_cut_)
-	{
-		nlohmann::json earths_cutData;
-		earths_cutData["x"] = earths_cut.x;
-		earths_cutData["y"] = earths_cut.y;
-		json_level["earths_cut"].push_back(earths_cutData);
-	}
-
-	json_level["stones"] = nlohmann::json::array();
-	for (const auto& stones : Stones_)
-	{
-		nlohmann::json stonesData;
-		stonesData["x"] = stones.x;
-		stonesData["y"] = stones.y;
-		json_level["stones"].push_back(stonesData);
-	}
-
-	json_level["stones_cut"] = nlohmann::json::array();
-	for (const auto& stones_cut : Stones_cut_)
-	{
-		nlohmann::json stones_cutData;
-		stones_cutData["x"] = stones_cut.x;
-		stones_cutData["y"] = stones_cut.y;
-		json_level["stones_cut"].push_back(stones_cutData);
-	}
-
-	// Écrire le JSON formaté dans le fichier
-	std::ofstream file(file_name);
-	if (file.is_open()) {
-		file << json_level.dump(4);
-		file.close();
-	}
-	else {
-		std::cerr << "Failed to open file for writing: " << file_name << std::endl;
-	}
-}
-
-void Tilemap::LoadLevelFromJson(const std::string& file_name)
-{
-#ifdef TRACY_ENABLE
-	ZoneScoped;
-#endif
-
-	// Nettoyer les vecteurs de tuiles et d'arbres existants
-	tiles_.clear();
-	Trees_.clear();
-	Trees_cut_.clear();
-
-	// Ouvrir le fichier JSON
-	std::ifstream file(file_name);
-	if (!file.is_open())
-	{
-		std::cerr << "Failed to open file: " << file_name << std::endl;
-		return;
-	}
-
-	try
-	{
-		nlohmann::json json_level;
-		file >> json_level;
-		file.close();
-
-		if (json_level.contains("Y_total") && json_level.contains("X_total") &&
-			json_level.contains("pixel_x") && json_level.contains("pixel_y"))
-		{
-			playground_size_u_.y = json_level["Y_total"];
-			playground_size_u_.x = json_level["X_total"];
-			playground_tile_offset_u_.x = json_level["pixel_x"];
-			playground_tile_offset_u_.y = json_level["pixel_y"];
-		}
-		else
-		{
-			std::cerr << "Missing or invalid playground dimensions or tile offset in JSON." << std::endl;
-			return;
-		}
-
-		tiles_.reserve(playground_size_u_.x * playground_size_u_.y);
-
-		auto tiles_array = json_level["tiles"];
-		for (const auto& tile_data : tiles_array)
-		{
-			float x = tile_data["x"];
-			float y = tile_data["y"];
-			int type_int = tile_data["type"];
-
-			if (type_int >= 0 && type_int < static_cast<int>(TileType::kEnd))
-			{
-				TileType type = static_cast<TileType>(type_int);
-
-				if (type_int >= 0 && type_int < static_cast<int>(ResourceManager::Resource::kEnd))
-				{
-					ResourceManager::Resource resource = static_cast<ResourceManager::Resource>(type_int);
-					tiles_.emplace_back(resource, x, y, true, type);
-				}
-			}
-		}
-
-		auto trees_array = json_level["trees"];
-		for (const auto& tree_data : trees_array)
-		{
-			float x = tree_data["x"];
-			float y = tree_data["y"];
-			Trees_.emplace_back(x, y);
-		}
-
-		auto trees_cut_array = json_level["trees_cut"];
-		for (const auto& tree_cut_data : trees_cut_array)
-		{
-			float x = tree_cut_data["x"];
-			float y = tree_cut_data["y"];
-			Trees_cut_.emplace_back(x, y);
-		}
-
-		auto earths_array = json_level["earths"];
-		for (const auto& earths_data : earths_array)
-		{
-			float x = earths_data["x"];
-			float y = earths_data["y"];
-			earths_.emplace_back(x, y);
-		}
-
-		auto earths_cut_array = json_level["earths_cut"];
-		for (const auto& earths_cut_data : earths_cut_array)
-		{
-			float x = earths_cut_data["x"];
-			float y = earths_cut_data["y"];
-			earths_cut_.emplace_back(x, y);
-		}
-
-		auto stones_array = json_level["stones"];
-		for (const auto& stones_data : stones_array)
-		{
-			float x = stones_data["x"];
-			float y = stones_data["y"];
-			Stones_.emplace_back(x, y);
-		}
-
-		auto stones_cut_array = json_level["stones_cut"];
-		for (const auto& stones_cut_data : stones_cut_array)
-		{
-			float x = stones_cut_data["x"];
-			float y = stones_cut_data["y"];
-			Stones_cut_.emplace_back(x, y);
-		}
-
-	}
-	catch (const nlohmann::json::exception& e)
-	{
-		std::cerr << "Error parsing JSON: " << e.what() << std::endl;
-	}
-}
 
 bool Tilemap::GatherTree(sf::Vector2f pos)
 {
@@ -570,10 +364,11 @@ bool Tilemap::GatherTree(sf::Vector2f pos)
 	{
 		Trees_cut_.emplace_back(*tree);
 		Trees_.erase(tree);
+		wood++;
 		auto tile = std::find_if(tiles_.begin(), tiles_.end(), [pos](const Tile& t) {return pos == t.Position(); });
 		if (tile != tiles_.end())
 		{
-			tile->Set_Tree(TileType::kForetCoupe1);
+			tile->Set_Tree_cut(TileType::kForetCoupe1);
 			
 		}
 		return true;
@@ -599,10 +394,11 @@ bool Tilemap::Gatherearther(sf::Vector2f pos)
 	{
 		earths_cut_.emplace_back(*eather);
 		earths_.erase(eather);
+		food++;
 		auto tile = std::find_if(tiles_.begin(), tiles_.end(), [pos](const Tile& t) {return pos == t.Position(); });
 		if (tile != tiles_.end())
 		{
-			tile->Set_earther(TileType::kTerre2);
+			tile->Set_earther_cut(TileType::kTerre2);
 
 		}
 		return true;
@@ -629,10 +425,11 @@ bool Tilemap::Gatherstone(sf::Vector2f pos)
 	{
 		Stones_cut_.emplace_back(*eather);
 		Stones_.erase(eather);
+		stone++;
 		auto tile = std::find_if(tiles_.begin(), tiles_.end(), [pos](const Tile& t) {return pos == t.Position(); });
 		if (tile != tiles_.end())
 		{
-			tile->Set_Stone(TileType::kStone2);
+			tile->Set_Stone_cut(TileType::kStone2);
 
 		}
 		return true;
@@ -663,6 +460,20 @@ Tile* Tilemap::GetTile(sf::Vector2f position)
 	}
 }
 
+void Tilemap::Findwater()
+{
+	water_.clear();
+	int water = 0;
+
+	for (auto& tile : tiles_) {
+		if (tile.GetType() == TileType::kWater1) {
+			std::cout << water <<" yo water is here \n";
+			water++;
+			water_.emplace_back(tile.Position());
+		}
+	}
+}
+
 
 void Tilemap::FindStones() {
 	Stones_.clear(); 
@@ -674,11 +485,299 @@ void Tilemap::FindStones() {
 	}
 }
 
+void Tilemap::Findwood() {
+	Trees_.clear();
+
+	for (auto& tile : tiles_) {
+		if (tile.GetType() == TileType::kForet1) {
+			Trees_.emplace_back(tile.Position());
+		}
+	}
+}
+
+void Tilemap::Findfood() {
+	earths_.clear();
+
+	for (auto& tile : tiles_) {
+		if (tile.GetType() == TileType::kTerre1) {
+			earths_.emplace_back(tile.Position());
+		}
+	}
+}
+
+void Tilemap::Remove(const sf::Vector2f& pos)
+{
+	RemoveIfFound(Trees_, pos);
+	RemoveIfFound(Stones_, pos);
+	RemoveIfFound(earths_, pos);
+}
+
+
+void Tilemap::RemoveIfFound(std::vector<sf::Vector2f>& vec, const sf::Vector2f& pos)
+{
+	auto it = std::remove_if(vec.begin(), vec.end(), [&](const sf::Vector2f& tile)
+		{
+			return tile.x == pos.x && tile.y == pos.y;
+		});
+
+	if (it != vec.end())
+	{
+		vec.erase(it, vec.end());
+	}
+}
+
+void Tilemap::Tick() {
+
+	if (clock_.getElapsedTime() >= interval_) 
+	{
+		day++;
+		if (day > 30) 
+		{
+			day = 1;
+			month++;
+			if (month > 12) 
+			{
+				month = 1;
+				year++;
+			}
+		}
+
+
+		GrowTree();
+		Restone();
+		Refood();
+		clock_.restart();
+	}
+}
+
+void Tilemap::GrowTree() {
+	if (Trees_cut_.empty()) {
+		return; 
+	}
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(0, Trees_cut_.size() - 1);
+
+	int index = dis(gen);
+	sf::Vector2f position = Trees_cut_[index];
+
+	size_t totalTrees = Trees_.size();
+	size_t cutTrees = Trees_cut_.size();
+
+	if (totalTrees == 0) {
+		return;
+	}
+
+	cutPercentage_wood = static_cast<double>(cutTrees) / totalTrees * 100.0;
+
+	if (cutPercentage_wood >= 90.0)
+	{
+		// Si 90% ou plus des arbres sont coupés, ne pas faire repousser les arbres
+		//std::cout << "90% ou plus des arbres sont coupés. Pas de repousse d'arbre." << std::endl;
+		woodover = true;
+		return;
+	}
+
+	Trees_.emplace_back(position);
+
+	Trees_cut_.erase(Trees_cut_.begin() + index);
+
+
+	auto tile = std::find_if(tiles_.begin(), tiles_.end(), [position](const Tile& t) {
+		return t.Position() == position;
+		});
+
+	if (tile != tiles_.end()) 
+	{
+		tile->Set_Tree(TileType::kTerre1); 
+	}
+
+
+	
+}
+
+void Tilemap::Restone()
+{
+	if (Stones_cut_.empty())
+	{
+		return;
+	}
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(0, Stones_cut_.size() - 1);
+
+	int index = dis(gen);
+	sf::Vector2f position = Stones_cut_[index];
+
+	size_t totalstone = Stones_.size();
+	size_t cutstone = Stones_cut_.size();
+
+	if (totalstone == 0) {
+		return;
+	}
+
+	cutPercentage_stone = static_cast<double>(cutstone) / totalstone * 100.0;
+
+	if (cutPercentage_stone >= 90.0)
+	{
+		// Si 90% ou plus des arbres sont coupés, ne pas faire repousser les arbres
+		//std::cout << "90% ou plus des arbres sont coupés. Pas de repousse d'arbre." << std::endl;
+		stoneover = true;
+		return;
+	}
+
+
+	Stones_.emplace_back(position);
+
+	Stones_cut_.erase(Stones_cut_.begin() + index);
+
+
+	auto tile = std::find_if(tiles_.begin(), tiles_.end(), [position](const Tile& t) {
+		return t.Position() == position;
+		});
+
+	if (tile != tiles_.end())
+	{
+		tile->Set_Stone(TileType::kStone1);
+	}
+
+
+	
+}
 
 
 
 
+void Tilemap::Refood()
+{
+	if (earths_cut_.empty())
+	{
+		return;
+	}
 
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis(0, earths_cut_.size() - 1);
 
+	int index = dis(gen);
+	sf::Vector2f position = earths_cut_[index];
 
+	size_t totalfood = earths_.size();
+	size_t cutfood = earths_cut_.size();
 
+	if (totalfood == 0) {
+		return;
+	}
+
+	cutPercentage_food = static_cast<double>(cutfood) / totalfood * 100.0;
+
+	if (cutPercentage_food >= 90.0)
+	{
+		// Si 90% ou plus des arbres sont coupés, ne pas faire repousser les arbres
+		//std::cout << "90% ou plus des arbres sont coupés. Pas de repousse d'arbre." << std::endl;
+		foodover = true;
+		return;
+	}
+
+	earths_.emplace_back(position);
+
+	earths_cut_.erase(earths_cut_.begin() + index);
+
+	auto tile = std::find_if(tiles_.begin(), tiles_.end(), [position](const Tile& t) {
+		return t.Position() == position;
+		});
+
+	if (tile != tiles_.end())
+	{
+		tile->Set_earther(TileType::kTerre1);
+	}
+}
+
+bool Tilemap::IsPositionInWater(const sf::Vector2f& pos) 
+{
+	for (const auto& waterPos : water_) {
+
+		if (waterPos == pos) 
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+int Tilemap::getWood()
+{
+	return wood;
+}
+
+int Tilemap::getFood()
+{
+	return food;
+}
+
+int Tilemap::getStone()
+{
+	return stone;
+}
+
+int Tilemap::getday()
+{
+	return day;
+}
+
+int Tilemap::getmonth()
+{
+	return month;
+}
+
+int Tilemap::getyear()
+{
+	return year;
+}
+
+double Tilemap::getCutPercentageWood() 
+{
+	return cutPercentage_wood;
+}
+
+double Tilemap::getCutPercentageStone() 
+{
+	return cutPercentage_stone;
+}
+
+double Tilemap::getCutPercentageFood() 
+{
+	return cutPercentage_food;
+}
+
+void Tilemap::setWood(int val)
+{
+	wood -= val;
+}
+
+void Tilemap::setfood(int val)
+{
+	food -= val;
+}
+
+void Tilemap::setstone(int val)
+{
+	stone -= val;
+}
+
+void Tilemap::setDay(int val)
+{
+	day = val;
+}
+
+void Tilemap::setMonth(int val)
+{
+	month = val;
+}
+
+void Tilemap::setYear(int val)
+{
+	year = val;
+}

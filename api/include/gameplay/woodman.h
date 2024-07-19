@@ -25,6 +25,7 @@ public:
 	behaviour_tree::Status seekwood();
 	behaviour_tree::Status Back_home();
 	behaviour_tree::Status GatherWood();
+	void pantsballon();
 	behaviour_tree::Status checkStamina();
 	void Tick();
 

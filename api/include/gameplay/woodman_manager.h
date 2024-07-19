@@ -10,11 +10,7 @@
 class woodmanManager : public sf::Drawable
 {
 private:
-
 	bool is_active_ = true;
-
-	
-
 public :
 	void Addwoodman(const Tile& tile,Tilemap& map);
 	std::vector<woodman> woodmans_;

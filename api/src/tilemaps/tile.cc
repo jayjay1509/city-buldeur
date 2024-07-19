@@ -32,14 +32,21 @@ void Tile::draw(sf::RenderTarget& target, sf::RenderStates states) const
 }
 
 
-void Tile::Set_Tree(TileType newtiletype)
+void Tile::Set_Tree_cut(TileType newtiletype)
 {
 	type_ = newtiletype;
 	
 	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::kForetCoupe1));
 }
 
-void Tile::Set_Stone(TileType newtiletype)
+void Tile::Set_Tree(TileType newtiletype)
+{
+	type_ = newtiletype;
+
+	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::kForet1));
+}
+
+void Tile::Set_Stone_cut(TileType newtiletype)
 {
 	type_ = newtiletype;
 
@@ -47,7 +54,7 @@ void Tile::Set_Stone(TileType newtiletype)
 }
 
 
-void Tile::Set_Stone_2(TileType newtiletype)
+void Tile::Set_Stone(TileType newtiletype)
 {
 	type_ = newtiletype;
 
@@ -55,11 +62,25 @@ void Tile::Set_Stone_2(TileType newtiletype)
 }
 
 
-void Tile::Set_earther(TileType newtiletype)
+void Tile::Set_earther_cut(TileType newtiletype)
 {
 	type_ = newtiletype;
 
 	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::kTerre2));
+}
+
+void Tile::Set_earther(TileType newtiletype)
+{
+	type_ = newtiletype;
+
+	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::kTerre1));
+}
+
+void Tile::Set_house(TileType newtiletype)
+{
+	type_ = newtiletype;
+
+	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::Kgreen));
 }
 
 void Tile::Select()

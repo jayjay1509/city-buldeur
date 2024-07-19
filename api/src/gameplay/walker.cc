@@ -55,6 +55,7 @@ void walker::Tick()
 
             new_pos = destination_;
             destination_ = path_.getNextStep();
+            
         }
         else
         {

@@ -3,6 +3,10 @@
 
 #include <gameplay/building_manager.h>
 
+
+
+
+
 void BuildingManager::SetActive(bool active)
 {
 	is_active_ = active;
@@ -10,6 +14,30 @@ void BuildingManager::SetActive(bool active)
 bool BuildingManager::GetActive() const
 {
 	return is_active_;
+}
+
+std::vector<sf::Vector2f> BuildingManager::GetWoodhousePositions()  {
+	std::vector<sf::Vector2f> positions;
+	for ( auto& house : woodhouses_) {
+		positions.push_back(house.GetPosition());
+	}
+	return positions;
+}
+
+std::vector<sf::Vector2f> BuildingManager::GetStonehousePositions()  {
+	std::vector<sf::Vector2f> positions;
+	for ( auto& house : stonehouses_) {
+		positions.push_back(house.GetPosition());
+	}
+	return positions;
+}
+
+std::vector<sf::Vector2f> BuildingManager::GetFoodhousePositions()  {
+	std::vector<sf::Vector2f> positions;
+	for ( auto& house : foodhouses_) {
+		positions.push_back(house.GetPosition());
+	}
+	return positions;
 }
 
 void BuildingManager::draw(sf::RenderTarget& target, sf::RenderStates states) const
@@ -28,37 +56,40 @@ void BuildingManager::draw(sf::RenderTarget& target, sf::RenderStates states) co
 	}
 }
 
-void BuildingManager::Addwoodhouse(Tile& tile,sf::Vector2f pos)
+void BuildingManager::Addwoodhouse(Tile& tile,sf::Vector2f pos,Tilemap& map)
 {
 	if(!is_active_)
 	{
 		return;
 	}
-	//std::cout << "Tile clicked, can we finally add a house ? [" << tile.Position().x << ":" << tile.Position().y << "]" << std::endl;
+	map.Remove(pos);
+	tile.Set_house(TileType::Kgreen);
 	woodhouses_.emplace_back(pos.x, pos.y);
 	tile.set_walkable(false);
 }
 
 
-void BuildingManager::Addstonehouse(Tile& tile, sf::Vector2f pos)
+void BuildingManager::Addstonehouse(Tile& tile, sf::Vector2f pos, Tilemap& map)
 {
 	if (!is_active_)
 	{
 		return;
 	}
-	//std::cout << "Tile clicked, can we finally add a house ? [" << tile.Position().x << ":" << tile.Position().y << "]" << std::endl;
+	map.Remove(pos);
+	tile.Set_house(TileType::Kgreen);
 	stonehouses_.emplace_back(pos.x, pos.y);
 	tile.set_walkable(false);
 }
 
 
-void BuildingManager::Addfoodhouse(Tile& tile, sf::Vector2f pos)
+void BuildingManager::Addfoodhouse(Tile& tile, sf::Vector2f pos, Tilemap& map)
 {
 	if (!is_active_)
 	{
 		return;
 	}
-	//std::cout << "Tile clicked, can we finally add a house ? [" << tile.Position().x << ":" << tile.Position().y << "]" << std::endl;
+	map.Remove(pos);
+	tile.Set_house(TileType::Kgreen);
 	foodhouses_.emplace_back(pos.x, pos.y);
 	tile.set_walkable(false);
 }

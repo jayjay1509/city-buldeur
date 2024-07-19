@@ -24,9 +24,9 @@ UiButton::UiButton(sf::Vector2f position, sf::Color colorBase, std::string text)
 	text_.setFillColor(sf::Color::Black);
 	sf::FloatRect textBounds = text_.getLocalBounds();
 	text_.setOrigin(textBounds.left + textBounds.width / 2.0f, textBounds.top + textBounds.height / 2.0f);
-
+	sprite_.setScale(2.0f, 1.0f);
 	//sf::FloatRect texSize = sf::FloatRect(texture_.get);
-	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::kStone1));
+	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::KButtongren));
 	sprite_.setOrigin(sprite_.getTexture()->getSize().x / 2.0f, sprite_.getTexture()->getSize().y / 2.0f);
 	sprite_.setColor(colorBase);
 
@@ -58,6 +58,16 @@ bool UiButton::ContainsMouse(const sf::Event& event) const
 	{
 		return false;
 	}
+}
+
+void UiButton::settexture_red()
+{
+	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::KButtonred));
+}
+
+void UiButton::settexture_green()
+{
+	sprite_.setTexture(ResourceManager::Get().GetTexture(ResourceManager::Resource::KButtongren));
 }
 
 void UiButton::HandleEvent(const sf::Event& event)

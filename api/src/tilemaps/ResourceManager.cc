@@ -49,9 +49,15 @@ void ResourceManager::LoadAllTextures() {
     loadTexture(Resource::kTerre2, "../resources/kenny/PNG/Default size/Tile/terre2.png");
     loadTexture(Resource::kWater1, "../resources/kenny/PNG/Default size/Tile/water 1.png");
     loadTexture(Resource::kMan, "../resources/kenny/PNG/Default size/Tile/man.png");
+    loadTexture(Resource::kMan2, "../resources/kenny/PNG/Default size/Tile/man2.png");
+    loadTexture(Resource::kMan3, "../resources/kenny/PNG/Default size/Tile/man3.png");
     loadTexture(Resource::kMaison1, "../resources/kenny/PNG/Default size/Tile/maison1.png");
     loadTexture(Resource::kMaison2, "../resources/kenny/PNG/Default size/Tile/maison2.png");
     loadTexture(Resource::kMaison3, "../resources/kenny/PNG/Default size/Tile/maison3.png");
+    loadTexture(Resource::Kgreen, "../resources/kenny/PNG/Default size/Tile/green.png");
+    loadTexture(Resource::KBallon, "../resources/kenny/PNG/Default size/Tile/ballon.png");
+    loadTexture(Resource::KButtongren, "../resources/kenny/PNG/Default size/Tile/buttongrenn.png");
+    loadTexture(Resource::KButtonred, "../resources/kenny/PNG/Default size/Tile/buttonred.png");
 }
 
 void ResourceManager::LoadCursors()

@@ -20,11 +20,17 @@ public:
         kTerre2,
         kWater1,
         kMan,
+        kMan2,
+        kMan3,
         kMaison1,
         kMaison2,
         kMaison3,
+        Kgreen,
+        KBallon,
+        KButtongren,
+        KButtonred,
         kEnd
-	};
+    };
 
     enum class CursorImage
     {

@@ -68,7 +68,7 @@ Path astar::CalculatePath(std::vector<sf::Vector2f> positions, sf::Vector2f star
         if (Magnitude(rounded_end - current.position()) <= std::numeric_limits<float>::epsilon())
         {
             path.setsteps(ConstructPath(current,visited_points.data()));
-            std::cout << "Found the path : nb steps = " << path.GetSteps().size() << std::endl;
+            //std::cout << "Found the path : nb steps = " << path.GetSteps().size() << std::endl;
             return path;
         }
 
