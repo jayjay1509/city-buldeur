@@ -20,9 +20,7 @@
 //sf::Vector2u Tilemap::playground_size_u_ = sf::Vector2u(15, 10);
 //sf::Vector2u Tilemap::playground_tile_offset_u_ = sf::Vector2u(18, 18);
 
-int generated = 0;
-
-Tilemap::Tilemap() : interval_(sf::seconds(1))
+int generated = 0;Tilemap::Tilemap() : interval_(sf::seconds(5))
 {
 	auto now = std::chrono::system_clock::now();
 	std::time_t now_c = std::chrono::system_clock::to_time_t(now);
@@ -295,22 +293,23 @@ std::vector<sf::Vector2f> Tilemap::GetWalkable()
 
 }
 
-void Tilemap::HandleEvent(const sf::Event& event,const sf::RenderWindow& window)
+void Tilemap::HandleEvent(const sf::Event& event,const sf::RenderWindow& window )
 {
 
-	sf::Vector2f worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+	sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
+	
 
-	// Snap mouse position to the grid
+	sf::Vector2f worldPos = window.mapPixelToCoords(pixelPos);
+
+	//std::cout << worldPos.x << " : " << worldPos.y << "\n";
+
+	
 	sf::Vector2f mousePosition(
 		static_cast<int>(worldPos.x / playground_tile_offset_u_.x) * playground_tile_offset_u_.x,
 		static_cast<int>(worldPos.y / playground_tile_offset_u_.y) * playground_tile_offset_u_.y
 	);
 
-	//if (event.type == sf::Event::MouseMoved) {
 
-	
-
-		// Unselect all
 		std::for_each(tiles_.begin(), tiles_.end(), [](Tile& t) {t.Unselect(); });
 
 		auto tileFound = std::find_if(tiles_.begin(), tiles_.end(), [&mousePosition](Tile& t) {return t.Position() == mousePosition; });
@@ -332,7 +331,7 @@ void Tilemap::HandleEvent(const sf::Event& event,const sf::RenderWindow& window)
 			}
 			else
 			{
-				std::cout << "No callback defined...";
+				//std::cout << "No callback defined...";
 			}
 		}
 	}
@@ -467,7 +466,7 @@ void Tilemap::Findwater()
 
 	for (auto& tile : tiles_) {
 		if (tile.GetType() == TileType::kWater1) {
-			std::cout << water <<" yo water is here \n";
+			//std::cout << water <<" yo water is here \n";
 			water++;
 			water_.emplace_back(tile.Position());
 		}
@@ -754,17 +753,17 @@ double Tilemap::getCutPercentageFood()
 
 void Tilemap::setWood(int val)
 {
-	wood -= val;
+	wood = val;
 }
 
 void Tilemap::setfood(int val)
 {
-	food -= val;
+	food = val;
 }
 
 void Tilemap::setstone(int val)
 {
-	stone -= val;
+	stone = val;
 }
 
 void Tilemap::setDay(int val)
@@ -780,4 +779,19 @@ void Tilemap::setMonth(int val)
 void Tilemap::setYear(int val)
 {
 	year = val;
+}
+
+void Tilemap::setPercentage_wood(int val)
+{
+	cutPercentage_wood = val;
+}
+
+void Tilemap::setPercentage_stone(int val)
+{
+	cutPercentage_stone = val;
+}
+
+void Tilemap::setPercentage_food(int val)
+{
+	cutPercentage_food = val;
 }

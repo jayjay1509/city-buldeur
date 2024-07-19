@@ -94,3 +94,10 @@ void BuildingManager::Addfoodhouse(Tile& tile, sf::Vector2f pos, Tilemap& map)
 	tile.set_walkable(false);
 }
 
+void BuildingManager::ClearAll()
+{
+	woodhouses_.clear();
+	stonehouses_.clear();
+	foodhouses_.clear();
+}
+

@@ -23,6 +23,8 @@ public :
 	void Addwoodhouse(Tile& tile, sf::Vector2f pos, Tilemap& map);
 	void Addstonehouse(Tile& tile, sf::Vector2f pos, Tilemap& map);
 	void Addfoodhouse(Tile& tile, sf::Vector2f pos, Tilemap& map);
+	void ClearAll();
+	
 
 	void SetActive(bool active);
 	bool GetActive() const;

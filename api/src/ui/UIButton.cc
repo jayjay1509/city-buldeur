@@ -73,16 +73,16 @@ void UiButton::settexture_green()
 void UiButton::HandleEvent(const sf::Event& event)
 {
 
-	// Check for mouse button pressed event
+	
 	if (event.type == sf::Event::MouseButtonReleased) {
 
 		if (ContainsMouse(event))
 		{
-			setScale(getScale().x / 0.9f, getScale().y / 0.9f);
+			//setScale(getScale().x / 0.9f, getScale().y / 0.9f);
 
 			// Check if the left mouse button is pressed
 			if (event.mouseButton.button == sf::Mouse::Left) {
-				// Code à faire pour le bouton ---------------------------------------------------
+				
 				if (callback_) {
 					callback_();
 				}
@@ -93,15 +93,6 @@ void UiButton::HandleEvent(const sf::Event& event)
 			}
 		}
 	}
-
-	if (event.type == sf::Event::MouseButtonPressed)
-	{
-		if (ContainsMouse(event))
-		{
-			setScale(0.9f * getScale().x, 0.9f * getScale().y);
-		}
-	}
-
 
 
 }

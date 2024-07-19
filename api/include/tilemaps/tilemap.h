@@ -88,6 +88,10 @@ public:
     void setMonth(int val);
     void setYear(int val);
 
+
+    void setPercentage_wood(int val);
+    void setPercentage_stone(int val) ;
+    void setPercentage_food(int val) ;
    
 
 private:

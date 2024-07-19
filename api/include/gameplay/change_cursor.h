@@ -30,5 +30,15 @@ public:
 		window.setMouseCursor(cursor);
 	}
 
+	static void SetCursorMode(sf::Window& window, bool isBuildingMode)
+	{
+		if (isBuildingMode) {
+			BuildingCursor(window);
+		}
+		else {
+			BasicCursor(window);
+		}
+	}
+
 };
 #endif // CURSOR_H

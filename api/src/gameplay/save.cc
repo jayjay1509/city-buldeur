@@ -151,6 +151,7 @@ void save::LoadLevelFromJson(const std::string& file_name, Tilemap& tilemap , Bu
 	woodman_manager.woodmans_.clear();
 	farmer_manager.farmers_.clear();
 	stonebreaker.stonebreakers_.clear();
+	building_manager.ClearAll();
 
 	std::cout << "load map 1 \n";
 

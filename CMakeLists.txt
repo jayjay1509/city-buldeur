@@ -38,3 +38,5 @@ endif(ENABLE_PROFILING)
 
 # Copy resource files to the build directory
 file(COPY ${CMAKE_SOURCE_DIR}/resources DESTINATION ${CMAKE_BINARY_DIR})
+
+set_target_properties(main PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
